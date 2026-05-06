@@ -1,13 +1,22 @@
 <?php
 //Importe le fichier du modèle Soutenance une seule fois. __DIR__ donne le chemin absolu du dossier courant, ce qui évite les problèmes de chemins relatifs.
 
-require_once __DIR__ . '/Model/Soutenance.php';
+require_once __DIR__ . '/../models/soutenance.php';
+require_once __DIR__ . '/../models/salle.php';           
+require_once __DIR__ . '/../models/configuration.php';
+require_once __DIR__ . '/../config/database.php';
 
 class SoutenanceController {
     private $soutenanceModel;
+    private $salleModel;        
+    private $configModel;
+    private PDO  $pdo;
 //Instancie le modèle Soutenance et le stocke dans $this->soutenanceModel
-    public function __construct() {
-        $this->soutenanceModel = new Soutenance();
+    public function __construct(PDO $pdo) {
+        $this->pdo = $pdo;
+        $this->soutenanceModel = new Soutenance($pdo);
+        $this->salleModel      = new salle($pdo);       
+        $this->configModel     = new configuration($pdo); 
     }
 
     private function sendJson($data, int $status = 200): void {
@@ -110,5 +119,81 @@ class SoutenanceController {
             $this->sendJson(["error" => "Échec de la suppression"], 400);
         }
     }
+
+
+    //CHAYMAE : Partie affectation des salles aux soutenances 
+    //fonction pour verefier que le creneau est valide 
+    private function estDansCreneauValide(string $heure_debut,string $heure_fin):bool{
+        $debut_matin=$this->configModel->getValeurByCle('heure_debut_matin');
+        $fin_matin=$this->configModel->getValeurByCle('heure_fin_matin');
+        $debut_apres_midi = $this->configModel->getValeurByCle('heure_debut_aprem');
+        $fin_apres_midi   = $this->configModel->getValeurByCle('heure_fin_aprem');
+        
+        $dans_matin=($heure_debut>=$debut_matin && $heure_fin <= $fin_matin);
+        $dans_apres_midi=($heure_debut>=$debut_apres_midi && $heure_fin <= $fin_apres_midi);
+
+        return $dans_matin || $dans_apres_midi;
+    }
+    //fonction retourne si une salle dispo 
+    private function salleDisponible(int $id_salle,string $date,string $heure_debut,string $heure_fin , int $id_sout_exclure=0):bool{
+        $stmt=$this->pdo->prepare("
+            SELECT COUNT(*) FROM soutenance
+            WHERE id_salle=:id_salle
+            AND date=:date
+            AND heure_debut < :heure_fin
+            AND heure_fin > :heure_debut
+            AND id_stnc != :id_exclure
+        ");
+        $stmt->execute([
+            ':id_salle'    => $id_salle,
+            ':date'        => $date,
+            ':heure_debut' => $heure_debut,
+            ':heure_fin'   => $heure_fin,
+            ':id_exclure'  => $id_sout_exclure
+        ]);
+        return $stmt->fetchColumn()==0;
+    }
+    //la fct principale qui va affecter les salles aux soutenances 
+    public function affecterSalles():array{
+        //recuperer les soutenances 
+        $soutenances=$this->soutenanceModel->soutenancesSansAffectation();
+        //recuperer les salles
+        $salles=$this->salleModel->listersalles();
+        $conflits=[];
+
+
+        foreach($soutenances as $sout){
+            if(!$this->estDansCreneauValide($sout['heure_debut'],$sout['heure_fin'])){
+                $conflits[]=[
+                    'soutenance'=>$sout,
+                    'raison'=>'heure hors creneau autorise'
+                ];
+                continue;
+            }
+            $salle_trouvee=null;
+            foreach($salles as $s){
+                if($this->salleDisponible($s->getId_salle(),$sout['date'],$sout['heure_debut'],$sout['heure_fin'],$sout['id_stnc'])){
+                    $salle_trouvee=$s->getId_salle();
+                    break;
+                }
+            }
+            if($salle_trouvee){
+                $this->soutenanceModel->affecterSalles($sout['id_stnc'],$salle_trouvee);
+
+            }else{
+                $conflits[]=[
+                    'soutenance'=>$sout,
+                    'raison'=>'aucune salle disponible a ce creneau'
+                ];
+            }
+        }
+        return[
+            'success'=>true,
+            'affectees'=>count($soutenances)-count($conflits),
+            'conflits'=>$conflits
+        ];
+    }
+    //CHAYMAE : fin
+
 }
 ?>
