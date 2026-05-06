@@ -1,11 +1,11 @@
 <?php
-require_once __DIR__ . '/config.php';
+
 
 class Soutenance {
-    private $pdo;
+    private PDO $pdo;
 
-    public function __construct() {
-        $this->pdo = Config::getInstance()->getPDO();
+    public function __construct(PDO $pdo) {
+        $this->pdo = $pdo;
     }
 
     public function getAllSoutenances(array $filters = []): array {
@@ -72,4 +72,23 @@ class Soutenance {
         $stmt->execute([$id]);
         return $stmt->rowCount() > 0;
     }
+
+    // CHAYMAE: debut
+
+    public function soutenancesSansAffectation(): array {
+        $stmt = $this->pdo->query(
+            "SELECT * FROM soutenance 
+            WHERE id_salle IS NULL 
+            ORDER BY date, heure_debut"
+        );
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function affecterSalles(int $id_stc, int $id_salle): void {
+        $stmt = $this->pdo->prepare(
+            "UPDATE soutenance SET id_salle = ? WHERE id_stnc = ?"
+        );
+        $stmt->execute([$id_salle, $id_stc]);
+    }
+    //CHAYMAE: fin 
 }
