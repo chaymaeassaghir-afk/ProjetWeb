@@ -1,6 +1,6 @@
 <?php
 
-require_once 'prof.php';
+require_once './models/prof.php';
 
 class profController {
 

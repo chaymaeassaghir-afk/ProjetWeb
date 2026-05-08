@@ -1,5 +1,5 @@
 <?php
-include($_SERVER['DOCUMENT_ROOT'].'/projetPFE/views/sidebar.html');
+include($_SERVER['DOCUMENT_ROOT'].'/projetweb/views/sidebar.html');
 ?>
 <?php   
 
@@ -9,8 +9,8 @@ include($_SERVER['DOCUMENT_ROOT'].'/projetPFE/views/sidebar.html');
  * Bibliothèque : PhpSpreadsheet
  */
 
-require '../vendor/autoload.php';
-require '../config/database.php';
+require __DIR__ .'/../vendor/autoload.php';
+require __DIR__ .'/../config/database.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fichier'])) {
             $feuille     = $spreadsheet->getActiveSheet();
             $ligneMax    = $feuille->getHighestDataRow();
 
-            $sql  = "INSERT INTO prof (nom, prenom, specialite) VALUES (:nom, :prenom, :specialite)";
+            $sql  = "INSERT INTO professeur (nom, prenom, specialite) VALUES (:nom, :prenom, :specialite)";
             $stmt = $pdo->prepare($sql);
 
             for ($ligne = $ligneDebut; $ligne <= $ligneMax; $ligne++) {
@@ -85,8 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fichier'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Import Professeurs</title>
-    <link href="/projetPFE/views/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/projetPFE/views/css/style.css" rel="stylesheet">
+    <link href="/projetweb/views/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/projetweb/views/style.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 

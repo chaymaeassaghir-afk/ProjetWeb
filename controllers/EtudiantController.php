@@ -1,5 +1,5 @@
 <?php
-require_once('./config/Database.php');
+require_once('./config/database.php');
 require_once('./models/Etudiant.php');
 class EtudiantController{
     private $model;
@@ -7,7 +7,7 @@ class EtudiantController{
         $this->model=new Etudiant($connexion);
     }
     public function afficherImport(){
-        require $_SERVER['DOCUMENT_ROOT'] . '/projet_soutenance/views/etudiant/import.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/projetweb/views/etudiant/import.php';
     }
     public function afficherListe(){
         if(isset($_GET['filiere']) && $_GET['filiere']!=''){
@@ -16,11 +16,11 @@ class EtudiantController{
         }else{
            $etudiants=$this->model->getEtudiants();
         }
-        require $_SERVER['DOCUMENT_ROOT'] . '/projet_soutenance/views/etudiant/liste.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/projetweb/views/etudiant/liste.php';
        
     }
     public function afficherFormulaireAjout(){
-        require $_SERVER['DOCUMENT_ROOT'] . '/projet_soutenance/views/etudiant/ajouteretudiant.php';
+        require $_SERVER['DOCUMENT_ROOT'] . '/projetweb/views/etudiant/ajouteretudiant.php';
     }
     public function ajoutEtd(){
         
@@ -33,14 +33,14 @@ class EtudiantController{
             $filiere=$_POST['filiere'];
             $this->model->insert($CNE,$nom,$prenom,$email_perso,$email_pro,$filiere,null);
         }
-        header("location:/projet_soutenance/indexEtudiant.php?page=liste_etudiants");
+        header("location:/projetweb/index.php?controller=etudiant&page=liste_etudiants");
         exit();
     }
     public function AfficherModifier(){
         if($_SERVER['REQUEST_METHOD']=='GET'){
             $id=$_GET['id'];
             $etudiant=$this->model->getById($id);
-            require $_SERVER['DOCUMENT_ROOT'] . '/projet_soutenance/views/etudiant/modifier.php';
+            require $_SERVER['DOCUMENT_ROOT'] . '/projetweb/views/etudiant/modifier.php';
         }
          
     }
@@ -56,7 +56,7 @@ class EtudiantController{
             $this->model->update($id,$CNE,$nom,$prenom,$email_perso,$email_pro,$filiere);
             
         }
-        header("location:/projet_soutenance/indexEtudiant.php?page=liste_etudiants");
+        header("location:/projetweb/index.php?controller=etudiant&page=liste_etudiants");
         exit();
     }
 
@@ -65,7 +65,7 @@ class EtudiantController{
         $id=$_GET['id'];
         $this->model->delete($id);
     }
-    header("location:indexEtudiant.php?page=liste_etudiants");
+    header("location:index.php?controller=etudiant&page=liste_etudiants");
     exit();
    }
 
@@ -92,7 +92,7 @@ class EtudiantController{
 
 
             }
-            header("location:indexEtudiant.php?page=liste_etudiants");
+            header("location:index.php?controller=etudiant&page=liste_etudiants");
             exit();
         }
     }

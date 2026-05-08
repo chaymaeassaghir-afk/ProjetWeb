@@ -17,49 +17,66 @@ class SalleController {
     // ──────────────────────────────────────────
     public function index(): void {
         $model  = new salle($this->pdo);
-        $salles = $model->listersalles();
+        $message = '';
+        $type_message = '';
 
-        // envoie la variable $salles à la vue
-        require_once __DIR__ . '/../index1.php';
+        // supprimer
+        if(isset($_GET['id']) && isset($_GET['action']) && $_GET['action'] === 'supprimer') {
+            $s = $model->trouversalleParId((int)$_GET['id']);
+            if($s) {
+                try {
+                    $s->supprimersalle();
+                    $message = "Salle supprimée avec succès.";
+                    $type_message = "success";
+                } catch(RuntimeException $e) {
+                    $message = $e->getMessage();
+                    $type_message = "danger";
+                }
+            }
+        }
+
+        // recherche
+        $motCle = trim($_GET['q'] ?? '');
+        $salles = $motCle !== '' 
+            ? $model->rechercher($motCle)
+            : $model->listersalles();
+
+        require_once __DIR__ . '/../views/salle/liste.php';
     }
 
     // ──────────────────────────────────────────
     // Afficher le formulaire d'ajout
     // ──────────────────────────────────────────
     public function afficherFormulaireAjout(): void {
-        require_once __DIR__ . '/../views/salles/form.php';
+        require_once __DIR__ . '/../views/salle/ajouter.php';
     }
 
     // ──────────────────────────────────────────
     // Traiter l'ajout d'une salle (reçoit $_POST)
     // ──────────────────────────────────────────
     public function ajouter(): void {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->rediriger('index');
-            return;
+        $model   = new salle($this->pdo);
+        $message = '';
+        $type_message = '';
+        $salle_edit = null;
+        $salles  = $model->listersalles();
+
+        if($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $numero_salle = trim($_POST['numero_salle'] ?? '');
+            $batiment     = trim($_POST['batiment']     ?? '');
+
+            if(!empty($numero_salle)) {
+                $s = new salle($this->pdo);
+                $s->setNumero_salle($numero_salle);
+                $s->setBatiment($batiment);
+                $s->ajouterSalle();
+                $message = "Salle ajoutée avec succès.";
+                $type_message = "success";
+                $salles = $model->listersalles(); // rafraîchir
+            }
         }
 
-        // récupérer les données du formulaire
-        $numero_salle = trim($_POST['numero_salle'] ?? '');
-        $batiment     = trim($_POST['batiment']     ?? '');
-        $id_salle     = (int) ($_POST['id_salle']   ?? 0);
-
-        // validation
-        if (empty($numero_salle)) {
-            $erreur = "Le numéro de salle est obligatoire.";
-            require_once __DIR__ . '/../views/salles/form.php';
-            return;
-        }
-
-        // appeler le model pour insérer
-        $model = new salle($this->pdo);
-        $model->setNumero_salle($numero_salle);
-        $model->setBatiment($batiment);
-        $model->setId_salle($id_salle);
-        $model->ajouterSalle();
-
-        // rediriger vers la liste
-        $this->rediriger('index');
+        require_once __DIR__ . '/../views/salle/ajouter.php';
     }
 
     // ──────────────────────────────────────────
@@ -71,12 +88,12 @@ class SalleController {
 
         if (!$salle_a_modifier) {
             $erreur = "Salle introuvable.";
-            require_once __DIR__ . '/../views/salles/index.php';
+            require_once __DIR__ . '/../index.php';
             return;
         }
 
         // envoie $salle_a_modifier à la vue
-        require_once __DIR__ . '/../views/salles/form.php';
+        require_once __DIR__ . '/../views/salle/liste.php';
     }
 
     // ──────────────────────────────────────────
@@ -128,11 +145,37 @@ class SalleController {
         } catch (RuntimeException $e) {
             $erreur = $e->getMessage();
             $salles = $model->listersalles();
-            require_once __DIR__ . '/../views/salles/index.php';
+            require_once __DIR__ . '/../views/salle/liste.php';
             return;
         }
 
         $this->rediriger('index');
+    }
+
+    public function disponible(): void {
+        $model        = new salle($this->pdo);
+        $disponibles  = [];
+        $dispo_search = false;
+
+        if(isset($_GET['check_dispo'])) {
+            $dispo_search = true;
+            $date        = $_GET['date']        ?? '';
+            $heure_debut = $_GET['heure_debut'] ?? '';
+            $heure_fin   = $_GET['heure_fin']   ?? '';
+
+            if(!empty($heure_debut) && strlen($heure_debut) === 5) {
+                $heure_debut .= ':00';
+            }
+            if(!empty($heure_fin) && strlen($heure_fin) === 5) {
+                $heure_fin .= ':00';
+            }
+
+            if($date && $heure_debut && $heure_fin) {
+                $disponibles = $model->sallesDisponibles($date, $heure_debut, $heure_fin);
+            }
+        }
+
+        require_once __DIR__ . '/../views/salle/disponible.php';
     }
 
     
