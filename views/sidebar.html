@@ -22,6 +22,11 @@
             background-color:#23242c;
         }
 
+        .sidebar-section {
+            color :rgb(89, 89, 114);
+            padding: 1rem;
+        }
+
         .sidebar-logo {
             font-size: 1.5rem;
             font-weight: 700;
@@ -57,35 +62,73 @@
 
 <body>
 
-    <div class="sidebar">
-        <div class="sidebar-logo"><i class="bi bi-mortarboard-fill"></i> GestPFE</div>
-        <div class="sidebar-sub">Gestion des soutenances</div>
-        <div><a href="../indexEtu.php?page=dashboard" class="nav-item-s"><i class="bi bi-speedometer2"></i> Dashboard</a>
-        </div>
-        <div><a href="/projetweb/indexEtu.php?page=importer_etudiants" class="nav-item-s ">
-                <i class="bi bi-file-earmark-excel"></i> Importer fichier étudiants
-            </a></div>
+<!-- ══════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════ -->
+<div class="sidebar">
+    <div class="sidebar-logo"><i class="bi bi-mortarboard-fill"></i> GestPFE</div>
+    <div class="sidebar-sub">Gestion des soutenances</div>
 
-        <div><a href="../indexEtu.php?page=liste_etudiants" class="nav-item-s">
-                <i class="bi bi-list-ul"></i> Liste des étudiants
-            </a></div>
+    <!-- Dashboard -->
+    <a href="index.php?page=dashboard" class="nav-item-s ?= $page==='dashboard' ? 'active':'' ?>">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
 
-        <div>
-            <a href="../indexEtu.php?page=ajouter_etudiant" class="nav-item-s">
-                <i class="bi bi-person-plus"></i> Ajouter un étudiant
-            </a>
-        </div>
-        <div><a href="#" class="nav-item-s"><i class="bi bi-person-badge"></i> Professeurs</a></div>
+    <!-- ── Étudiants ── -->
+    <div class="sidebar-section" >Étudiants</div>
+    <a href="index.php?controller=etudiant&page=liste_etudiants" 
+       class="nav-item-s ?= ($controller==='etudiant' && $page==='liste_etudiants') ? 'active':'' ?>">
+        <i class="bi bi-list-ul"></i> Liste des étudiants
+    </a>
+    <a href="index.php?controller=etudiant&page=ajouter_etudiant" 
+       class="nav-item-s ?= ($controller==='etudiant' && $page==='ajouter_etudiant') ? 'active':'' ?>">
+        <i class="bi bi-person-plus"></i> Ajouter un étudiant
+    </a>
+    <a href="index.php?controller=etudiant&page=importer_etudiants" 
+       class="nav-item-s ?= ($controller==='etudiant' && $page==='importer_etudiants') ? 'active':'' ?>">
+        <i class="bi bi-file-earmark-excel"></i> Importer fichier étudiants
+    </a>
 
-        <div><a href="#" class="nav-item-s"><i class="bi bi-journal-bookmark"></i> Sujets PFE</a></div>
-        
-        <div><a href="/ptojetweb/index1.php?action=index" class="nav-item-s"><i class="bi bi-building"></i> Liste des salles</a></div>
-        <div><a href="#" class="nav-item-s"><i class="bi bi-building"></i> Ajouter salle</a></div>
-        <div><a href="#" class="nav-item-s"><i class="bi bi-building"></i> Chercher les salles disponibles</a></div>
-        <div><a href="#" class="nav-item-s"><i class="bi bi-calendar-event"></i> Soutenances</a></div>
-    </div>
+    <!-- ── Professeurs ── -->
+    <div class="sidebar-section">Professeurs</div>
+    <a href="index.php?controller=prof" class="nav-item-s">
+        <i class="bi bi-person-badge"></i> Importer un fichier des professeurs
+    </a>
+    <a href="index.php?controller=liste_prof" class="nav-item-s">
+        <i class="bi bi-person-badge"></i> Liste des professeurs
+    </a>
+
+
+    <!-- ── Salles ── -->
+    <div class="sidebar-section">Salles</div>
+    <a href="index.php?controller=salle&page=liste" 
+       class="nav-item-s ?= ($controller==='salle' && $page==='liste') ? 'active':'' ?>">
+        <i class="bi bi-list-ul"></i> Liste des salles
+    </a>
+    <a href="index.php?controller=salle&page=ajouter" 
+       class="nav-item-s ?= ($controller==='salle' && $page==='ajouter') ? 'active':'' ?>">
+        <i class="bi bi-building-add"></i> Ajouter une salle
+    </a>
+    <a href="index.php?controller=salle&page=disponible" 
+       class="nav-item-s ?= ($controller==='salle' && $page==='disponible') ? 'active':'' ?>">
+        <i class="bi bi-calendar-check"></i> Salles disponibles
+    </a>
+
+    <!-- ── Sujets PFE ── -->
+    <div class="sidebar-section">Sujets PFE</div>
+    <a href="index.php?controller=sujet&page=liste" class="nav-item-s">
+        <i class="bi bi-journal-bookmark"></i> Liste des sujets
+    </a>
+
+    <!-- ── Soutenances ── -->
+    <div class="sidebar-section">Soutenances</div>
+    <a href="index.php?controller=soutenance&page=liste" 
+       class="nav-item-s ?= ($controller==='soutenance' && $page==='liste') ? 'active':'' ?>">
+        <i class="bi bi-calendar-event"></i> Liste des soutenances
+    </a>
+    
+</div>
 
 
 </body>
-
 </html>
