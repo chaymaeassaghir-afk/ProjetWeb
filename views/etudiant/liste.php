@@ -1,20 +1,21 @@
 <?php
-require_once ($_SERVER['DOCUMENT_ROOT'].'/projet_soutenance/views/layout/sidebar.html');
+require_once ($_SERVER['DOCUMENT_ROOT'].'/projetweb/views/sidebar.html');
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="/projet_soutenance/views/bootstrap/css/bootstrap.min.css" rel="stylesheet"></link>
-     <link href="/projet_soutenance/views/bootstrap/css/style.css" rel="stylesheet"></link>
-    <script src="/projet_soutenance/views/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <link href="/projetweb/views/css/bootstrap.min.css" rel="stylesheet"></link>
+    <link href="/projetweb/views/style.css" rel="stylesheet"></link>
+
+    <script src="/projetweb/views/js/bootstrap.bundle.min.js"></script>
     <title>Liste des etudiants</title>
 </head>
 <body class="bg-light">
     <div class="main-content">
         <h2 class="form-title"> Liste Des Etudiants </h2>
-        <form action="/projet_soutenance/indexEtudiant.php" method="get">
+        <form action="/projetweb/index.php?controller=etudiant&page=liste_etudiants" method="get">
             <input type="hidden" name="page" value="liste_etudiants">
             <div class="mb-3 d-flex align-items-center gap-3">
                 <label for="filiere" class="form-label mb-0">Filtrer par filière :</label>

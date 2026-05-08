@@ -1,18 +1,18 @@
-<?php require_once($_SERVER['DOCUMENT_ROOT'] . '/projet_soutenance/views/layout/sidebar.html'); ?>
+<?php require_once($_SERVER['DOCUMENT_ROOT'] . '/projetweb/views/sidebar.html'); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="/projet_soutenance/views/bootstrap/css/bootstrap.min.css" rel="stylesheet"></link>
-    <link href="/projet_soutenance/views/bootstrap/css/style.css" rel="stylesheet"></link>
+    <link href="/projetweb/views/css/bootstrap.min.css" rel="stylesheet"></link>
+    <link href="/projetweb/views/style.css" rel="stylesheet"></link>
     <title>Import</title>
 </head>
 <body class="bg-light">
     <div class="main-content">
         <div class="col-md-10 ">
             <div class="form-card">
-                <form action="/projet_soutenance/indexEtudiant.php?page=traiter_import" method="POST" enctype="multipart/form-data">
+                <form action="/projetweb/index.php?controller=etudiant&page=importer_etudiants" method="POST" enctype="multipart/form-data">
                     <h2 class="form-title">Importation d'un fichier Excel</h2>
                     <div class="mb-3">
                         <label for="filiere" class="form-label">Choisir une filière :</label>
