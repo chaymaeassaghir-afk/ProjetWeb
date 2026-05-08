@@ -1,33 +1,5 @@
 <?php
-require_once '../../config/database.php';
-require_once '../../models/salle.php';
-require_once '../sidebar.html';
 
-
-$salleObj = new salle($pdo);
-$salle_edit   = null;
-$message      = '';
-$type_message = '';
-
-if(isset($_GET['supprimer'])){
-    $s = $salleObj->trouversalleParId((int)$_GET['supprimer']);
-    if ($s) {
-        try {
-            $s->supprimersalle();
-            $message      = "Salle supprimée avec succès.";
-            $type_message = "success";
-        } catch (RuntimeException $e) {
-            $message      = $e->getMessage();
-            $type_message = "danger";
-        }
-    }
-}
-$motCle = trim($_GET['q'] ?? '');
-if ($motCle !== '') {
-    $salles = $salleObj->rechercher($motCle);
-} else {
-    $salles = $salleObj->listersalles();
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,16 +23,10 @@ if ($motCle !== '') {
         <div class="card-body-custom" style="padding-bottom:8px">
 
             <!-- Recherche -->
-            <form method="GET" action="">
-                <div class="search-wrap">
-                    <i class="bi bi-search"></i>
-                    <input type="text"
-                        name="q"
-                        class="search-input"
-                        placeholder="Rechercher par numéro ou bâtiment..."
-                        value="<?= htmlspecialchars($motCle) ?>"
-                        oninput="this.form.submit()">
-                </div>
+            <form method="GET" action="/projetweb/index.php">
+                <input type="hidden" name="controller" value="salle">
+                <input type="hidden" name="action" value="liste">
+                
             </form>
 
             <!-- Tableau -->
@@ -78,7 +44,7 @@ if ($motCle !== '') {
                                 <th>Numero</th>
                                 <th>Bâtiment</th>
                                 <th>ID Salle</th>
-                                <th style="text-align:center">Actions</th>
+                                <th style="text-align:center">Supprimer</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -104,7 +70,7 @@ if ($motCle !== '') {
                                     <td style="color:var(--muted);font-size:.85rem"><?= $s->getId_salle() ?></td>
                                     <td style="text-align:center">
                                         
-                                        <a href="?supprimer=<?= $s->getId_salle() ?>"
+                                        <a href="/projetweb/index.php?controller=salle&action=supprimer&id=<?= $s->getId_salle() ?>"
                                             class="btn-icon del ms-1" title="Supprimer"
                                             onclick="return confirm('Supprimer cette salle ?')">
                                             <i class="bi bi-trash"></i>

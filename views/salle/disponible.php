@@ -1,30 +1,12 @@
 <?php
-require_once '../../config/database.php';
-require_once '../../models/salle.php';
-require_once '../sidebar.html';
 
 
-$salleObj = new salle($pdo);
-$salle_edit   = null;
-$message      = '';
-$type_message = '';
-$disponibles  = [];
-$dispo_search = false;
-if (isset($_GET['check_dispo'])) {
-    $dispo_search = true;
-    $date         = $_GET['date']        ?? '';
-    $heure_debut  = $_GET['heure_debut'] ?? '';
-    $heure_fin    = $_GET['heure_fin']   ?? '';
-    if ($date && $heure_debut && $heure_fin) {
-        $disponibles = $salleObj->sallesDisponibles($date, $heure_debut, $heure_fin);
-    }
-}
+
+
 $motCle = trim($_GET['q'] ?? '');
 if ($motCle !== '') {
     $salles = $salleObj->rechercher($motCle);
-} else {
-    $salles = $salleObj->listersalles();
-}
+} 
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -60,7 +42,9 @@ if ($motCle !== '') {
         </div>
                 
         <div class="card-body-custom">
-            <form method="GET" action="">
+            <form method="GET" action="/projetweb/index.php">
+                <input type="hidden" name="controller" value="salle">
+                <input type="hidden" name="action" value="disponible">
                 <div class="mb-3">
                     <label class="form-label-custom">Date</label>
                     <input type="date" name="date" class="form-control-custom"

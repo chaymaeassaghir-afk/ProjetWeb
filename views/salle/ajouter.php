@@ -1,38 +1,4 @@
-<?php
-require_once '../../config/database.php';
-require_once '../../models/salle.php';
-require_once '../sidebar.html';
 
-
-$salleObj = new salle($pdo);
-$salle_edit   = null;
-$message      = '';
-$type_message = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id       = (int)($_POST['id_salle'] ?? 0);
-    $batiment = trim($_POST['batiment'] ?? '');
-    $numero_salle = trim($_POST['numero_salle'] ?? '');
-
-    if ($id === 0) {
-        $s = new salle($pdo);
-        $s->setNumero_salle($numero_salle); 
-        $s->setBatiment($batiment);
-        $s->ajouterSalle();
-        $message      = "Salle ajoutée avec succès.";
-        $type_message = "success";
-    } else {
-        $s = $salleObj->trouversalleParId($id);
-        if ($s) {
-            $s->setNumero_salle($numero_salle);
-            $s->setBatiment($batiment);
-            $s->modifiersalle();
-            $message      = "Salle modifiée avec succès.";
-            $type_message = "success";
-        }
-    }
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,6 +12,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
 </head>
 <body>
+    <?php if($message): ?>
+        <div class="alert alert-<?= $type_message ?>">
+            <?= $message ?>
+        </div>
+        <?php if($type_message === 'success'): ?>
+        <script>
+            setTimeout(() => {
+                window.location.href = '/projetweb/index.php?controller=salle&action=liste';
+            }, 1500);  // redirige après 1.5 secondes
+        </script>
+        <?php endif; ?>
+    <?php endif; ?>
     <div class="main">
         <div class="topbar">
             <div class="page-title">Gestion des <span> Salles </span></div>
@@ -53,16 +31,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <i class="bi bi-calendar3 me-1"></i><?= date('d/m/Y') ?>
             </div>
         </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#AFEEEE">
+                <i class="bi bi-building" style="color:#4682B4"></i>
+            </div>
+            <div>
+                <div class="stat-val"><b><?= count($salles) ?></b></div>
+                <div class="stat-label">Salles disponibles</div>
+            </div>
+        </div>         
         <div class="card-body-custom">
             <div class="card-head">
                 <div class="card-head-title">
                     <i class="bi bi-calendar-check"></i>Nouvelle Salle                                
                 </div>
             </div>
-           <form method="POST" action="">
-                <?php if ($salle_edit): ?>
-                <input type="hidden" name="id_salle" value="<?= $salle_edit->getId_salle() ?>">
-                <?php endif; ?>
+           <form method="POST" action="/projetweb/index.php?controller=salle&action=ajouter">
+                
                 <div class="mb-3">
                     <label class="form-label-custom">Numéro de salle</label>
                     <input 
@@ -86,8 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <button type="submit" class="btn-primary-custom">
-                    <i class="bi bi-<?= $salle_edit ? 'check-lg' : 'plus-lg' ?> me-1"></i>
-                    <?= $salle_edit ? 'Enregistrer' : 'Ajouter la salle' ?>
+                    <i class="bi bi-plus-lg  me-1">Ajouter la salle</i>
+                    
                 </button>
                 
             </form>
