@@ -1,9 +1,9 @@
 <?php
-require_once ($_SERVER['DOCUMENT_ROOT'].'/projetPFE/views/sidebar.html');
-require '../config/database.php';
+require_once ($_SERVER['DOCUMENT_ROOT'].'/projetweb/views/sidebar.html');
+require __DIR__ .'/../../config/database.php';
 
 // Récupération des professeurs
-$sql = "SELECT * FROM prof ORDER BY nom ASC";
+$sql = "SELECT * FROM professeur ORDER BY nom ASC";
 
 $stmt = $pdo->query($sql);
 
@@ -16,10 +16,10 @@ $profs = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="/projetPFE/views/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/projetPFE/views/css/style.css" rel="stylesheet">
+    <link href="/projetweb/views/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/projetweb/views/style.css" rel="stylesheet">
 
-    <script src="/projetPFE/views/js/bootstrap.bundle.min.js"></script>
+    <script src="/projetweb/views/js/bootstrap.bundle.min.js"></script>
 
     <title>Liste des Professeurs</title>
 </head>
@@ -49,7 +49,7 @@ $profs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <th>Nom</th>
                         <th>Prénom</th>
                         <th>Spécialité</th>
-                        <th>action</th>
+                        
                     </tr>
 
                 </thead>
@@ -76,24 +76,7 @@ $profs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <?= htmlspecialchars($prof['specialite']) ?>
                             </td>
 
-                            <td class="text-center">
-
-                                <a href="modifier_prof.php?id=<?= $prof['id']; ?>"
-                                   class="btn btn-warning btn-sm">
-
-                                    <i class="bi bi-pencil"></i>
-
-                                </a>
-
-                                <a href="supprimer_prof.php?id=<?= $prof['id']; ?>"
-                                   class="btn btn-danger btn-sm"
-                                   onclick="return confirm('Voulez-vous vraiment supprimer ce professeur ?');">
-
-                                    <i class="bi bi-trash"></i>
-
-                                </a>
-
-                            </td>
+                            
 
                         </tr>
 
