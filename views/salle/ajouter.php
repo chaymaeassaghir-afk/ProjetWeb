@@ -1,4 +1,6 @@
-
+<?php
+require_once   __DIR__ .'/../sidebar.html';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

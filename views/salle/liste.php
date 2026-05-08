@@ -1,5 +1,5 @@
 <?php
-
+require_once   __DIR__ .'/../sidebar.html';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,13 +21,35 @@
             </div>
         </div>
         <div class="card-body-custom" style="padding-bottom:8px">
+            <div class="card-head">
+                <div class="card-head-title">
+                    <i class="bi bi-list-ul"></i>
+                        Liste des salles
+                    <span style="background:#eef2ff;color:var(--accent);font-size:.75rem;padding:2px 8px;border-radius:20px;font-weight:600">
+                        <?= count($salles) ?>
+                    </span>
+                </div>
+            </div>
+            
 
             <!-- Recherche -->
-            <form method="GET" action="/projetweb/index.php">
-                <input type="hidden" name="controller" value="salle">
-                <input type="hidden" name="action" value="liste">
+                <form method="GET" action="/projetweb/index.php">
+                    <input type="hidden" name="controller" value="salle">
+                    <input type="hidden" name="action" value="liste">
+                    <div class="search-wrap">
+                        <i class="bi bi-search"></i>
+                        <input type="text"
+                                    name="q"
+                                    class="search-input"
+                                    placeholder="Rechercher par numéro ou bâtiment..."
+                                    value="<?= htmlspecialchars($motCle) ?>"
+                                    oninput="this.form.submit()">
+                    </div>
+                </form>
+            
+            
                 
-            </form>
+            
 
             <!-- Tableau -->
             <?php if (empty($salles)): ?>

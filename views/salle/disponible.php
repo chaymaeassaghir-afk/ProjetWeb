@@ -1,6 +1,6 @@
 <?php
 
-
+require_once   __DIR__ .'/../sidebar.html';
 
 
 $motCle = trim($_GET['q'] ?? '');
