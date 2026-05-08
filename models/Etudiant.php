@@ -1,8 +1,8 @@
 <?php
 
 class Etudiant{
-    private $connexion;
-    public function __construct($connexion){
+    private PDO $connexion;
+    public function __construct(PDO $connexion){
         
         $this->connexion=$connexion;
      }
@@ -23,17 +23,12 @@ class Etudiant{
          $stmt->execute($param);
          return true;
       }catch(PDOException $e){
-         if($e->getCode()==23000){
+         /*if($e->getCode()==23000){
             return false; //des doublons , on les ignore
-         }
-         throw $e;//autre erreur, on l'affiche
+         }*/
+         die ("Erreur : " . $e->getMessage());//autre erreur, on l'affiche
       }
        
-     }
-     public function delete($id){
-      $stmt=$this->connexion->prepare("DELETE  FROM etudiant WHERE id_etudiant=?");
-      $stmt->execute([$id]);
-
      }
      public function getByProf($id_prof){
       $stmt=$this->connexion->prepare("SELECT *FROM etudiant where id_prof=:id_prof");
@@ -51,10 +46,6 @@ class Etudiant{
       $stmt=$this->connexion->prepare("SELECT * FROM etudiant WHERE filiere=?");
       $stmt->execute([$filiere]);
       return $stmt->fetchAll();
-     }
-     public function Update($id,$CNE,$nom,$prenom,$email_perso,$email_pro,$filiere){
-      $stmt=$this->connexion->prepare("UPDATE etudiant SET CNE=?,nom=?,prenom=?,email_perso=?,email_pro=?,filiere=? WHERE id_etudiant=?");
-      $stmt->execute([$CNE, $nom, $prenom, $email_perso, $email_pro, $filiere,$id]);
      }
 }
 ?>

@@ -1,5 +1,6 @@
 <?php
 class salle{
+    private $id_salle;
     private $numero_salle;
     private $batiment;
     private $capacite;
@@ -49,18 +50,18 @@ class salle{
     #methodes crud
     public function ajouterSalle(): void{
         $numero_salle = $_POST['numero_salle'] ?? null;
-    $batiment = $_POST['batiment'] ?? null;
+        $batiment = $_POST['batiment'] ?? null;
 
-    $stmt = $this->pdo->prepare(
-        "INSERT INTO salle (numero_salle, batiment) VALUES (?, ?)"
-    );
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO salle (numero_salle, batiment) VALUES (?, ?)"
+        );
+        
+        $stmt->execute([$numero_salle, $batiment]);
+
+        $this->id_salle = (int) $this->pdo->lastInsertId();
+
     
-    $stmt->execute([$numero_salle, $batiment]);
-
-    $this->id_salle = (int) $this->pdo->lastInsertId();
-
-    header("Location: salles.php");
-    exit();
+    
     }
 
     public function modifiersalle():void{
