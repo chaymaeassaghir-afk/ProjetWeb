@@ -4,11 +4,14 @@ error_reporting(E_ALL);
 
 require_once 'config/database.php';
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 // ── Chargement des controllers ──
 require_once 'controllers/EtudiantController.php';
 require_once 'controllers/sallecontroller.php';
 require_once 'controllers/ControllerSoutenance.php';
-require_once 'views/sidebar.html';
+require_once 'controllers/profController.php';
+
 
 // ── Récupérer controller et page depuis l'URL ──
 $controller = $_GET['controller'] ?? 'etudiant';
@@ -22,6 +25,9 @@ switch($controller) {
     case 'soutenance':
         $ctrl = new SoutenanceController($pdo);
         break;
+    /*case 'prof':
+        $ctrl= new profController($pdo);
+        break;   */ 
     case 'etudiant':
     default:
         $ctrl = new EtudiantController($pdo);
@@ -44,7 +50,7 @@ switch($controller) {
                 $ctrl->afficherListe();
                 break;
             case 'ajouter_etudiant':
-                $ctrl->afficherListe(); // remplace par afficherFormulaireAjout() quand prêt
+                $ctrl->afficherFormulaireAjout(); // remplace par afficherFormulaireAjout() quand prêt
                 break;
             case 'importer_etudiants':
                 if($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -110,6 +116,12 @@ switch($controller) {
                 break;
         }
         break;
+    case 'prof':
+        require_once 'controllers/import_profs.php';
+
+        break; 
+    case 'liste_prof':
+        require_once 'views/prof/liste_profs.php';   
 
     // ── DASHBOARD ──
     default:
@@ -117,4 +129,6 @@ switch($controller) {
         echo "<p>Utilisez le menu à gauche pour naviguer.</p>";
         break;
 }
+
 ?>
+
