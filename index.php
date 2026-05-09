@@ -10,7 +10,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once 'controllers/EtudiantController.php';
 require_once 'controllers/sallecontroller.php';
 require_once 'controllers/ControllerSoutenance.php';
-require_once 'controllers/profController.php';
+
 
 
 // ── Récupérer controller et page depuis l'URL ──
@@ -50,11 +50,7 @@ switch($controller) {
                 $ctrl->afficherListe();
                 break;
             case 'ajouter_etudiant':
-                if($_SERVER['REQUEST_METHOD'] === 'POST'){
-                    $ctrl->ajoutEtd();
-                }else{
-                    $ctrl->afficherFormulaireAjout();
-                }
+                $ctrl->afficherFormulaireAjout(); // remplace par afficherFormulaireAjout() quand prêt
                 break;
             case 'importer_etudiants':
                 if($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -63,20 +59,19 @@ switch($controller) {
                     $ctrl->afficherImport();
                 }
                 break;
-            case 'supprimer':
-                $ctrl->supprimerEtudiant();
-                break;    
-            case 'modifier':
-                if($_SERVER['REQUEST_METHOD'] === 'POST') {
-                    $ctrl->traiterModification();
-                }else{
-                    $ctrl->AfficherModifier();
-                }
-                break;    
-            case 'dashboard':
-            default:
-                echo "<h3>Bienvenue sur GestPFE</h3>";
+            case 'traiter_ajout':
+                $ctrl->ajoutEtd();
                 break;
+            case 'afficher_modifier':
+                $ctrl->AfficherModifier();//va afficher le formulaire pre-remplie
+                break;
+            case 'traiter_modifier':
+                $ctrl->traiterModification();
+                break;
+            case 'supprimer_etudiant':
+                $ctrl->supprimerEtudiant();
+                break;
+            
         }
         break;
 
@@ -130,15 +125,12 @@ switch($controller) {
                 break;
         }
         break;
-    
-    // -- Professeur --
     case 'prof':
         require_once 'controllers/import_profs.php';
 
         break; 
     case 'liste_prof':
-        require_once 'views/prof/liste_profs.php'; 
-        break;  
+        require_once 'views/prof/liste_profs.php';   
 
     // ── DASHBOARD ──
     default:
@@ -148,4 +140,3 @@ switch($controller) {
 }
 
 ?>
-
