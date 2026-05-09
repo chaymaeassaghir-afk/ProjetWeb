@@ -50,7 +50,11 @@ switch($controller) {
                 $ctrl->afficherListe();
                 break;
             case 'ajouter_etudiant':
-                $ctrl->afficherFormulaireAjout(); // remplace par afficherFormulaireAjout() quand prêt
+                if($_SERVER['REQUEST_METHOD'] === 'POST'){
+                    $ctrl->ajoutEtd();
+                }else{
+                    $ctrl->afficherFormulaireAjout();
+                }
                 break;
             case 'importer_etudiants':
                 if($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -59,6 +63,16 @@ switch($controller) {
                     $ctrl->afficherImport();
                 }
                 break;
+            case 'supprimer':
+                $ctrl->supprimerEtudiant();
+                break;    
+            case 'modifier':
+                if($_SERVER['REQUEST_METHOD'] === 'POST') {
+                    $ctrl->traiterModification();
+                }else{
+                    $ctrl->AfficherModifier();
+                }
+                break;    
             case 'dashboard':
             default:
                 echo "<h3>Bienvenue sur GestPFE</h3>";
@@ -116,12 +130,15 @@ switch($controller) {
                 break;
         }
         break;
+    
+    // -- Professeur --
     case 'prof':
         require_once 'controllers/import_profs.php';
 
         break; 
     case 'liste_prof':
-        require_once 'views/prof/liste_profs.php';   
+        require_once 'views/prof/liste_profs.php'; 
+        break;  
 
     // ── DASHBOARD ──
     default:
