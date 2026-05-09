@@ -7,7 +7,7 @@ require_once ($_SERVER['DOCUMENT_ROOT'].'/projetweb/views/sidebar.html');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="/projetweb/views/css/bootstrap.min.css" rel="stylesheet"></link>
-    <link href="/projetweb/views/style.css" rel="stylesheet"></link>
+    <link href="/projetweb/views/css/style.css" rel="stylesheet"></link>
 
     <script src="/projetweb/views/js/bootstrap.bundle.min.js"></script>
     <title>Liste des etudiants</title>
@@ -52,8 +52,8 @@ require_once ($_SERVER['DOCUMENT_ROOT'].'/projetweb/views/sidebar.html');
                         <td><?= $etudiant['email_pro']?></td>
                         <td><?= $etudiant['filiere']?></td>
                         <td class="text-center">
-                            <a href="/projet_soutenance/indexEtudiant.php?page=afficher_modifier&id=<?= $etudiant['id_etudiant'];?>" class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i></a>
-                            <a href="/projet_soutenance/indexEtudiant.php?page=supprimer_etudiant&id=<?= $etudiant['id_etudiant'];?>" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></a>
+                            <a href="/projetweb/index.php?controller=etudiant&page=afficher_modifier&id=<?= $etudiant['id_etudiant'];?>" class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i></a>
+                            <a href="/projetweb/index.php?controller=etudiant&page=supprimer_etudiant&id=<?= $etudiant['id_etudiant'];?>" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></a>
 
                         </td>
                     </tr>
