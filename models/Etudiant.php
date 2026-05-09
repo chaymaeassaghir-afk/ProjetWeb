@@ -47,5 +47,14 @@ class Etudiant{
       $stmt->execute([$filiere]);
       return $stmt->fetchAll();
      }
+     public function delete($id){
+      $stmt=$this->connexion->prepare("DELETE  FROM etudiant WHERE id_etudiant=?");
+      $stmt->execute([$id]);
+
+     }
+     public function update($id, $CNE, $nom, $prenom, $email_perso, $email_pro, $filiere) {
+    $stmt = $this->connexion->prepare("UPDATE etudiant SET CNE=?, nom=?, prenom=?, email_perso=?, email_pro=?, filiere=? WHERE id_etudiant=?");
+    $stmt->execute([$CNE, $nom, $prenom, $email_perso, $email_pro, $filiere, $id]);
+    }
 }
 ?>
