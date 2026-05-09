@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="/projetweb/views/css/bootstrap.min.css" rel="stylesheet"></link>
-    <link href="/projetweb/views/style.css" rel="stylesheet"></link>
+    <link href="/projetweb/views/css/style.css" rel="stylesheet"></link>
     <title>Modification</title>
 </head>
 <body class="bg-light">
     <div class="main-content">
         <div class="col-md-10">
             <div class="form-card">
-                <form action="/projetweb/index.php?controller=etudiant&page=modifier" method="POST">
+                <form action="/projetweb/index.php?controller=etudiant&page=traiter_modifier" method="POST">
                     <h2 class="form-title">Modification </h2>
                     <input type="hidden" name="id" value="<?= $etudiant['id_etudiant'];?>" class="form-control">
                     <div class="mb-3">
