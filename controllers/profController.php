@@ -92,11 +92,6 @@ class profController {
         include '../views/prof/nb_etudiants.php';
     }
 
-    // Répartir les étudiants équitablement
-    public function repartir() {
-        $affectations = $this->prof->repartirEtudiants();
-        include '../views/prof/repartition.php';
-    }
 
     
 }

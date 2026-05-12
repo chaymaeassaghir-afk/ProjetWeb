@@ -28,7 +28,7 @@ class SoutenanceController {
     }
 //Récupère tous les paramètres $_GET comme filtres et les passe directement au modèle.
     public function index(): void {
-           $filters = $_GET;
+        $filters = $_GET;
         $soutenances = $this->soutenanceModel->getAllSoutenances($filters);
         $this->sendJson($soutenances);
     }
@@ -129,6 +129,9 @@ class SoutenanceController {
         $debut_apres_midi = $this->configModel->getValeurByCle('heure_debut_aprem');
         $fin_apres_midi   = $this->configModel->getValeurByCle('heure_fin_aprem');
         
+        $heure_debut=strtotime($heure_debut);
+        $heure_fin=strtotime($heure_fin);
+        
         $dans_matin=($heure_debut>=$debut_matin && $heure_fin <= $fin_matin);
         $dans_apres_midi=($heure_debut>=$debut_apres_midi && $heure_fin <= $fin_apres_midi);
 
@@ -192,8 +195,24 @@ class SoutenanceController {
             'affectees'=>count($soutenances)-count($conflits),
             'conflits'=>$conflits
         ];
+        
     }
     //CHAYMAE : fin
+    
+    public function planifierDates(){
+        if($_SERVER['REQUEST_METHOD'] === 'POST'){
+            $dateDebut = $_POST['date_debut'];
+            $this->soutenanceModel->affecterDatesEtHoraires($dateDebut);
+        }
+        
+
+        
+    }
+
+    public function afficherFormulairePlanification(){
+        require_once __DIR__ . '/../views/soutenance/plannification.php';
+    }
+    
 
 }
 ?>

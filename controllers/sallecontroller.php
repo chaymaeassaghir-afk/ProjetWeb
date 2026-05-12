@@ -183,7 +183,7 @@ class SalleController {
     // Méthode privée : rediriger vers une action
     // ──────────────────────────────────────────
     private function rediriger(string $action): void {
-        header("Location: index.php?controller=salle&action=$action");
+        header("Location: index.php?controller=salle&page=$action");
         exit;
     }
 }
