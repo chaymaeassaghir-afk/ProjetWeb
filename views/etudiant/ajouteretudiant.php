@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="/projetweb/views/css/bootstrap.min.css" rel="stylesheet"></link>
-    <link href="/projetweb/views/css/style.css" rel="stylesheet"></link>
+    <link href="/projetweb/views/style.css" rel="stylesheet"></link>
     <title>ajouter etudiant</title>
 </head>
 <body class="bg-light">
