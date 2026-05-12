@@ -1,11 +1,28 @@
 <?php
 
 class Etudiant{
+
     private PDO $connexion;
     public function __construct(PDO $connexion){
         
         $this->connexion=$connexion;
      }
+     public function getEtudiantsAvecEncadrants() {
+
+        $sql = "SELECT 
+                    e.nom AS nom_etudiant,
+                    e.prenom AS prenom_etudiant,
+                    e.filiere,
+                    p.nom AS nom_prof,
+                    p.prenom AS prenom_prof
+                FROM etudiant e
+                LEFT JOIN professeur p 
+                ON e.id_prof = p.id";
+
+        $stmt = $this->connexion->query($sql);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
      public function getEtudiants(){
         $stmt=$this->connexion->query("
         SELECT * FROM etudiant");
@@ -53,8 +70,24 @@ class Etudiant{
 
      }
      public function update($id, $CNE, $nom, $prenom, $email_perso, $email_pro, $filiere) {
-    $stmt = $this->connexion->prepare("UPDATE etudiant SET CNE=?, nom=?, prenom=?, email_perso=?, email_pro=?, filiere=? WHERE id_etudiant=?");
-    $stmt->execute([$CNE, $nom, $prenom, $email_perso, $email_pro, $filiere, $id]);
-    }
+      $stmt = $this->connexion->prepare("UPDATE etudiant SET CNE=?, nom=?, prenom=?, email_perso=?, email_pro=?, filiere=? WHERE id_etudiant=?");
+      $stmt->execute([$CNE, $nom, $prenom, $email_perso, $email_pro, $filiere, $id]);
+      }
+
+      //douaa:debut
+      public function affecterProf($id, $id_prof){
+
+         $sql = "UPDATE etudiant
+                  SET id_prof = :id_prof
+                  WHERE id_etudiant = :id_etudiant";
+
+         $stmt = $this->connexion->prepare($sql);
+
+         return $stmt->execute([
+            ':id_prof' => $id_prof,
+            ':id_etudiant' => $id
+         ]);
+      }
+      //douaa:fin
 }
 ?>
