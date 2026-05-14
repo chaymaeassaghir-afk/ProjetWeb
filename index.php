@@ -15,6 +15,7 @@ require_once 'controllers/ConfigurationController.php';
 require_once 'controllers/juryController.php';
 require_once 'controllers/profController.php';
 require_once 'controllers/PlanningController.php';
+require_once 'models/Planning.php';
 
 
 
@@ -34,7 +35,6 @@ switch($controller) {
         $ctrl= new profController($pdo);
         break;   
     case 'etudiant':
-    default:
         $ctrl = new EtudiantController($pdo);
         break;
     case 'pv':
@@ -48,7 +48,14 @@ switch($controller) {
         break;  
     case 'finale':   
         $planningCtrl = new PlanningController($pdo);
+        break; 
+    case 'genererPDF':
+        $planninModel = new Planning($pdo);
         break;  
+    case 'dashboard':
+    default:    
+        $ctrl = new JuryController($pdo);
+        break;
 }
 
 // ── Début du HTML (layout principal) ──
@@ -95,8 +102,9 @@ switch($controller) {
                 $ctrl->genererAffectation();
                 break; 
             case 'affecter_pdf':
-                $ctrl->affecterEtGenererPDF();
-                break;    
+                $ctrl->genererPDF();
+                break;  
+
             default:
                 $ctrl->dashboard();
                 break;       
@@ -229,8 +237,9 @@ switch($controller) {
             case 'affecter':
                 $ctrl->affecterJuryAuto();
                 break;
-            default:
-                $ctrl->index();
+            case 'dashboard':
+            default:    
+                $ctrl->afficherDashboard();
                 break;
         } 
         break;   
@@ -243,16 +252,20 @@ switch($controller) {
     case 'liste_prof':
         require_once 'views/prof/liste_profs.php';  
         break; 
-    
+    //planning
     case 'finale':
         $planningCtrl->affectationFinale();
         break; 
+    case 'genererPDF':
+        
+        $planninModel->genererPlanningPDF();
+        break;    
 
     // ── DASHBOARD ──
     case 'dashboard':
     default:
-        $ctrl->dashboard();
-         break;
+        $ctrl->afficherDashboard();
+        break;
 }
 
 ?>
