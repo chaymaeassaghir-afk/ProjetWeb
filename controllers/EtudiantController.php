@@ -98,8 +98,8 @@ class EtudiantController{
     exit();
    }
 
-    public function remplirSoutenances() {
-        $etudiants = $this->model->getEtudiants();
+    public function remplirSoutenances(string $filiere) {
+        $etudiants = $this->model->getParFiliere($filiere);
         foreach ($etudiants as $etudiant) {
             $this->stncModel->insert($etudiant['id_etudiant']);
         }
@@ -125,7 +125,7 @@ class EtudiantController{
                 if(empty($nom)){continue ;}
                 $this->model->insert($CNE,$nom,$prenom,$email_perso,$email_pro,$filiere,null);
             }
-            $this->remplirSoutenances();
+            $this->remplirSoutenances($filiere);
             header("location:index.php?controller=etudiant&page=liste_etudiants");
             exit();
         }
@@ -291,7 +291,7 @@ class EtudiantController{
 
         // IMPORTANT : rien après Output()
         $pdf->Output('D', 'encadrement.pdf');
-        exit;
+        
     }
     public function affecterEtGenererPDF() {
         $this->genererAffectation();

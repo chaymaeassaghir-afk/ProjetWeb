@@ -4,6 +4,7 @@ require_once __DIR__ . '/../controllers/ControllerSoutenance.php';
 require_once __DIR__ . '/../controllers/EtudiantController.php';
 require_once __DIR__ . '/../controllers/juryController.php';
 require_once __DIR__ . '/../controllers/profController.php';
+require_once __DIR__ . '/../models/Planning.php';
 
 
 class PlanningController {
@@ -13,6 +14,7 @@ class PlanningController {
     private EtudiantController $etudiantCtrl;
     private juryController $juryCtrl;
     private profController $profCtrl;
+    private Planning $planningModel;
 
     public function __construct(PDO $pdo) {
         $this->pdo   = $pdo;
@@ -20,16 +22,18 @@ class PlanningController {
         $this->etudiantCtrl   = new EtudiantController($this->pdo);
         $this->juryCtrl       = new juryController($this->pdo);
         $this->profCtrl       = new profController($this->pdo);
+        $this->planningModel  = new Planning($this->pdo);
     }
 
     public function affectationFinale() {
-        
+
         $this->etudiantCtrl->genererAffectation();
         $this->soutenanceCtrl->planifierDates();
         $this->juryCtrl->affecterJuryAuto();
         $this->soutenanceCtrl->affecterSalles();
-        
     }
+
+
         
 
     

@@ -172,28 +172,28 @@ class juryController {
             $id = $soutenance['id_stnc'];
             $nbJury = $this->jury->juryDejaAffecte($id);
 
-            if($nbJury >= 2){
+            if($nbJury >= 3){
                 continue;
             }
 
             // Compter combien de profs info sont déjà dans ce jury
             $nbInfoActuel = $this->jury->getNbJuryInfoDispo($id);
 
-            if($nbJury == 0){
-                // Besoin de 2 profs → on prend 2 profs info en priorité
+            if($nbJury == 1){
+                // Besoin de 2 profs -> on prend 2 profs info en priorité
                 $profs = $this->jury->getProfDispo($id, true); // info seulement
 
                 if(count($profs) >= 2){
-                    // ✅ 2 profs info dispo → on les prend
+                    
                     $this->jury->insert($id, $profs[0]['id'], "Président");
                     $this->jury->insert($id, $profs[1]['id'], "Rapporteur");
 
                 } elseif(count($profs) == 1){
-                    // ✅ 1 seul prof info → on le prend + 1 autre quelconque
+                    
                     $profInfo = $profs[0];
                     $autresProfs = $this->jury->getProfDispo($id, false);
 
-                    // Exclure le prof info déjà sélectionné
+                    
                     $autresProfs = array_filter(
                         $autresProfs,
                         fn($p) => $p['id'] !== $profInfo['id']
@@ -208,19 +208,19 @@ class juryController {
                     }
 
                 } else {
-                    // ❌ Aucun prof info dispo
+                    
                     echo "Soutenance $id : aucun prof informatique disponible.\n";
                 }
 
-            } elseif($nbJury == 1){
+            } elseif($nbJury == 2){
                 // Besoin d'1 seul prof supplémentaire
-                $besoinInfo = ($nbInfoActuel < 2); // faut-il encore un prof info ?
+                $besoinInfo = ($nbInfoActuel < 2);
                 $profs = $this->jury->getProfDispo($id, $besoinInfo);
 
                 if(count($profs) >= 1){
                     $this->jury->insert($id, $profs[0]['id'], "Rapporteur");
                 } else {
-                    // Fallback : si aucun prof info, prendre n'importe lequel
+                    //si aucun prof info est dispo on prend un autre prof avec une specialite quelconque
                     if($besoinInfo){
                         $profs = $this->jury->getProfDispo($id, false);
                     }
@@ -234,23 +234,42 @@ class juryController {
         }
     }
     #fin israe
-    public function afficherStats(){
-        $statistiques=$this->jury->getStatJury();
-        if (!$statistiques) {
-            $statistiques = [];
+    public function afficherDashboard() {
+    // Stats jury
+        $statistiques = $this->jury->getStatJury();
+        $noms = [];
+        $totaux = [];
+        foreach ($statistiques as $s) {
+            $noms[]   = $s['nom'] . ' ' . $s['prenom'];
+            $totaux[] = $s['total'];
         }
-    
-        $noms=[];
-        $total=[];
-        foreach($statistiques as $s){
-            $noms[]=$s['nom'].' '.$s['prenom']; // nom et prenom du prof
-            $total[]=$s['total'];
+        $noms_json   = json_encode($noms);
+        $totaux_json = json_encode($totaux);
+
+        // Stats encadrant
+        $stats_enc = $this->jury->getStatEncadrant();
+        $noms_enc   = [];
+        $totaux_enc = [];
+        foreach ($stats_enc as $s) {
+            $noms_enc[]   = $s['nom'] . ' ' . $s['prenom'];
+            $totaux_enc[] = $s['total'];
         }
-        $noms_json = json_encode($noms);
-        $totaux_json = json_encode($total); 
+        $noms_enc_json   = json_encode($noms_enc);
+        $totaux_enc_json = json_encode($totaux_enc);
+
+        // Stats filière
+        $stats_fil   = $this->jury->getStatParfiliere();
+        $filieres    = [];
+        $totaux_fil  = [];
+        foreach ($stats_fil as $s) {
+            $filieres[]   = $s['filiere'];
+            $totaux_fil[] = $s['total'];
+        }
+        $filieres_json   = json_encode($filieres);
+        $totaux_fil_json = json_encode($totaux_fil);
+
         require $_SERVER['DOCUMENT_ROOT'] . '/projetweb/views/dashboard/dashboard.php';
     }
-    
 }
 
 ?>
