@@ -10,16 +10,14 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-
     <link href="/projetweb/views/dashboard/style.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
-<div class="main">
+<div class="main" style="background-color:var(--surface)">
 
     <!-- TOPBAR -->
     <div class="topbar">
@@ -35,11 +33,11 @@
     <!-- CARD -->
     <div class="row">
         <div class="col-6">
-            <div class="card-body-custom" style="background-color:¨#f0fdf4">
+            <div class="card-body-custom" style="background-color:#92e4e9">
                 <div class="card-head">
                     <div class="card-head-title">
                         <i class="bi bi-speedometer2"></i>
-                        Tableau de bord
+                        Affectation des encadrants
                     </div>
                 </div>
 
@@ -51,68 +49,147 @@
 
                 <!-- ACTION BUTTON -->
                 <div class="mt-3 d-flex justify-content-end">
+                    <a href="index.php?controller=soutenance&page=afficherFormulairePlanification"
+                            class="btn btn-primary "
+                              style="border-radius:10px;padding:10px 16px;font-weight:600;background-color: #f4e28b;color:gray;">
 
+                             <i class="bi bi-magic"></i> Generer le planning
+                    </a>
+                </div>
+
+                
+
+            </div>
+            
+        </div>
+        <div class="col-6">
+            <div class="card-body-custom" style="background-color:#92e4e9">
+                <div class="card-head">
+                    <div class="card-head-title">
+                        <i class="bi bi-speedometer2"></i>
+                        Recuperation des documents
+                    </div>
+                </div>
+
+                
+                
+
+                <!-- ACTION BUTTON -->
+                <div class="mt-3 d-flex justify-content-end">
+
+                    <a href="index.php?controller=genererPDF"
+                            class="btn btn-primary "
+                            style="border-radius:10px;padding:10px 16px;font-weight:600;background-color: #f4e28b;color:gray;">
+
+
+                             <i class="bi bi-magic"></i> Télécharger le planning
+                    </a>
+                </div>
+                <div class="mt-3 d-flex justify-content-end">
                     <a href="index.php?controller=etudiant&page=affecter_pdf"
-                            class="btn btn-primary d-flex align-items-center gap-2"
-                              style="border-radius:10px;padding:10px 16px;font-weight:600;">
+                            class="btn btn-primary "
+                              style="border-radius:10px;padding:10px 16px;font-weight:600;background-color: #f4e28b;color:gray;">
 
-                             <i class="bi bi-magic"></i> Affecter les encadrants</a>
+                             <i class="bi bi-magic"></i> Télécharger le PDF des encadrants
+                    </a>
                 </div>
 
-                <!-- INFO -->
-                <div class="mt-4" style="color:var(--muted)">
-                    Cliquez sur le bouton pour générer automatiquement l’affectation des professeurs aux étudiants.
+                <div>
+                    <br></br>
                 </div>
-
+                
             </div>
         </div>
     </div>
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <p class="text-muted">Total profs jury</p>
-                <h3><?= count($statistiques) ?></h3>
-            </div>
-        </div>
+    <!-- statistiques -->
+    <h4 class="page-title">Soutenances par prof jury</h4>
+    <div style="position: relative; width: 100%; height: 350px;">
+        <canvas id="juryChart" role="img" aria-label="Soutenances par prof jury"></canvas>
     </div>
 
-    <!-- Graphique -->
-    <div style="position: relative; width: 100%; height: 400px;">
-        <canvas id="juryChart" role="img" 
-                aria-label="Nombre de soutenances par professeur jury">
-        </canvas>
+    <h4 class="page-title">Étudiants encadrés par prof</h4>
+    <div style="position: relative; width: 100%; height: 350px;">
+        <canvas id="encadrantChart" role="img" aria-label="Étudiants encadrés par prof"></canvas>
+    </div>
+
+    <h4 class="page-title">Soutenances par filière</h4>
+    <div style="position: relative; width: 100%; height: 350px;">
+        <canvas id="filiereChart" role="img" aria-label="Soutenances par filière"></canvas>
     </div>
 
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-    const noms = <?= $noms_json ?>;
-    const totaux = <?= $totaux_json ?>;
-
-    new Chart(document.getElementById('juryChart'), {
-        type: 'bar',
-        data: {
-            labels: noms,
-            datasets: [{
-                label: 'Nombre de soutenances comme jury',
-                data: totaux,
-                backgroundColor: '#378ADD',
-                borderRadius: 6,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
-            }
+// ── Graphique 1 — Nombre de soutenances par prof jury ──
+const noms = <?= $noms_json ?>;
+const totaux = <?= $totaux_json ?>;
+new Chart(document.getElementById('juryChart'), {
+    type: 'bar',
+    data: {
+        labels: noms,
+        datasets: [{
+            label: 'Soutenances comme jury',
+            data: totaux,
+            backgroundColor: '#eeb18c',
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { autoSkip: false, maxRotation: 30, font: { size: 11 } }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
         }
-    });
-</script>
+    }
+});
 
+// ── Graphique 2 — Nombre d'étudiants encadrés par prof ──
+const noms_enc = <?= $noms_enc_json ?>;
+const totaux_enc = <?= $totaux_enc_json ?>;
+new Chart(document.getElementById('encadrantChart'), {
+    type: 'bar',
+    data: {
+        labels: noms_enc,
+        datasets: [{
+            label: "Étudiants encadrés",
+            data: totaux_enc,
+            backgroundColor: '#92e4e9',
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { autoSkip: false, maxRotation: 30, font: { size: 11 } }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+    }
+});
+
+// ── Graphique 3 — Soutenances par filière (camembert) ──
+const filieres = <?= $filieres_json ?>;
+const totaux_fil = <?= $totaux_fil_json ?>;
+new Chart(document.getElementById('filiereChart'), {
+    type: 'pie',
+    data: {
+        labels: filieres,
+        datasets: [{
+            data: totaux_fil,
+            backgroundColor: ['#92e4e9', '#eeb18c', '#D85A30'],
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+</script>
 
 </body>
 </html>
