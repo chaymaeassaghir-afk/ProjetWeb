@@ -1,8 +1,10 @@
 <?php
 class Soutenance {
     private PDO $pdo;
+    private array $jours = [];
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
+        $this->jours = [];
     }
     public function insert(int $id_etudiant): void {
         $stmt = $this->pdo->prepare("INSERT INTO soutenance (etudiant_id) VALUES (?)");
@@ -119,9 +121,15 @@ class Soutenance {
             $reste   = $total % $nbJours;
  
             $repartition[$filiere] = [];
-            foreach ($this->jours as $i => $jour) {
-                // Les premiers $reste jours ont 1 soutenance de plus
-                $repartition[$filiere][$jour] = $base + ($i < $reste ? 1 : 0);
+            for ($i = 0; $i < $nbJours; $i++) {
+                $jour = $this->jours[$i];
+                if($reste>=1){
+                    $repartition[$filiere][$jour] = $base + 1;
+                    $reste--;
+                }
+                else{
+                    $repartition[$filiere][$jour] = $base;
+                }
             }
         }
         return $repartition;
@@ -153,9 +161,11 @@ class Soutenance {
             $config[$row['cle']] = $row['valeur'];
         }
 
-        
-        
-
+        $jour = [];
+        $jour[0]= $dateDebut;
+        $jour[1]= date('Y-m-d', strtotime($dateDebut . ' +1 day'));
+        $jour[2]= date('Y-m-d', strtotime($dateDebut . ' +2 day'));
+        $this->jours = $jour;
         // RÉCUPÉRATION
  
         $parFiliere = $this->getSoutenancesSansDate();
@@ -224,7 +234,22 @@ class Soutenance {
 
                     // Créneau correspondant
                     $creneau = $creneaux[$i % count($creneaux)];
-
+                    $id_encadrant = $this->getEncadrantBySoutenance($soutenance['id_stnc']);
+                    if ($this->encadrantOccupe($id_encadrant, $jour, $creneau['debut'])) {
+                        // Chercher un autre créneau disponible
+                        $creneauTrouve = false;
+                        foreach ($creneaux as $autreCreneaux) {
+                            if (!$this->encadrantOccupe($id_encadrant, $jour, $autreCreneaux['debut'])) {
+                                $creneau = $autreCreneaux;
+                                $creneauTrouve = true;
+                                break;
+                            }
+                        }
+                        if (!$creneauTrouve) {
+                            // Pas de créneau dispo ce jour → passer au jour suivant
+                            continue;
+                        }
+                    }
                     // Mise à jour
                     $this->updateSoutenanceDate(
                         $soutenance['id_stnc'],
@@ -237,6 +262,29 @@ class Soutenance {
                 }
             }
         }
+    }
+
+    public function encadrantOccupe($id_prof, $date, $heure_debut): bool {
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*) FROM jury j
+            JOIN soutenance s ON j.id_soutenance = s.id_stnc
+            WHERE j.id_prof = ?
+            AND j.role = 'Encadrant'
+            AND s.date = ?
+            AND s.heure_debut = ?
+        ");
+        $stmt->execute([$id_prof, $date, $heure_debut]);
+        return $stmt->fetchColumn() > 0;
+    }
+    public function getEncadrantBySoutenance($id_stnc): int {
+        $stmt = $this->pdo->prepare("
+            SELECT j.id_prof 
+            FROM jury j
+            WHERE j.id_soutenance = ?
+            AND j.role = 'Encadrant'
+        ");
+        $stmt->execute([$id_stnc]);
+        return $stmt->fetchColumn();
     }
 
 }

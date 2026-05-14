@@ -77,6 +77,17 @@ class Etudiant{
       //douaa:debut
       public function affecterProf($id, $id_prof){
 
+         $sql1="INSERT INTO jury (id_soutenance, id_prof, role) 
+                SELECT s.id_stnc, :id_prof, 'Encadrant' 
+                FROM soutenance s
+                JOIN etudiant e ON s.etudiant_id = e.id_etudiant
+                WHERE e.id_etudiant = :id_etudiant";
+         $stmt1 = $this->connexion->prepare($sql1);
+         $stmt1->execute([
+            ':id_prof' => $id_prof,
+            ':id_etudiant' => $id
+         ]);       
+
          $sql = "UPDATE etudiant
                   SET id_prof = :id_prof
                   WHERE id_etudiant = :id_etudiant";
@@ -87,6 +98,7 @@ class Etudiant{
             ':id_prof' => $id_prof,
             ':id_etudiant' => $id
          ]);
+
       }
       //douaa:fin
 }

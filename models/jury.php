@@ -268,6 +268,24 @@ class jury {
         return $stmt->fetchall();
 
     }
+
+    public function getStatEncadrant(){
+        $sql="SELECT p.nom,p.prenom ,count(e.id_etudiant) as total FROM professeur p
+              JOIN etudiant e 
+              ON e.id_prof=p.id
+              GROUP BY p.id,p.nom,p.prenom
+              ORDER BY total DESC";
+        $stmt=$this->pdo->query($sql);
+        return $stmt->fetchall();
+    }
+    public function getStatParfiliere(){
+        $sql="SELECT e.filiere , count(s.id_stnc) as total FROM soutenance s
+              JOIN etudiant e 
+              ON e.id_etudiant=s.etudiant_id
+              GROUP BY e.filiere";
+        $stmt=$this->pdo->query($sql);
+        return $stmt->fetchall();
+    }
 }
 
 ?>
