@@ -1,5 +1,5 @@
-<?php require_once ($_SERVER['DOCUMENT_ROOT'] . '/projetweb/views/sidebar.html');?>
 
+<?php require_once ($_SERVER['DOCUMENT_ROOT'] . '/projetweb/views/sidebar.html');?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -12,12 +12,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link href="/projetweb/views/dashboard/style.css" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
-<div class="main" style="background-color:var(--surface)">
+<div class="main" style="background-color: #dddcdc;">
 
     <!-- TOPBAR -->
     <div class="topbar">
@@ -102,21 +103,28 @@
         </div>
     </div>
     <!-- statistiques -->
-    <h4 class="page-title">Soutenances par prof jury</h4>
-    <div style="position: relative; width: 100%; height: 350px;">
-        <canvas id="juryChart" role="img" aria-label="Soutenances par prof jury"></canvas>
+     <div class="row">
+        <div class="col-6">
+            <h4 class="">Soutenances par prof jury</h4>
+            <div><br></br></div>
+            <div style="position: relative; width: 100%; height: 350px;">
+                <canvas id="juryChart" role="img" aria-label="Soutenances par prof jury"></canvas>
+            </div>
+        </div>
+        
+        <div class="col-6">
+            <h4 class="">Soutenances par filière</h4>
+            <div style="position: relative; width: 100%; height: 350px;">
+                <canvas id="filiereChart" role="img" aria-label="Soutenances par filière"></canvas>
+            </div>
+        </div>
     </div>
-
-    <h4 class="page-title">Étudiants encadrés par prof</h4>
-    <div style="position: relative; width: 100%; height: 350px;">
-        <canvas id="encadrantChart" role="img" aria-label="Étudiants encadrés par prof"></canvas>
-    </div>
-
-    <h4 class="page-title">Soutenances par filière</h4>
-    <div style="position: relative; width: 100%; height: 350px;">
-        <canvas id="filiereChart" role="img" aria-label="Soutenances par filière"></canvas>
-    </div>
-
+            <h4 class="">Étudiants encadrés par prof</h4>
+            <div><br></br></div>
+            <div style="position: relative; width: 100%; height: 350px;">
+                <canvas id="encadrantChart" role="img" aria-label="Étudiants encadrés par prof"></canvas>
+            </div>
+        
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
