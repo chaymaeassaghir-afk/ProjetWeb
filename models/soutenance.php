@@ -226,7 +226,7 @@ class Soutenance {
 
                 for ($i = 0; $i < $nbPourJour; $i++) {
 
-                    if (!isset($soutenances[$indexSoutenance])) {
+                    if (!isset($soutenances[$indexSoutenance])) { 
                         break;
                     }
 

@@ -214,9 +214,12 @@ class jury {
                     AND s2.id_stnc != ?
                 )";
 
-        // ✅ si on a besoin de profs info → filtrer par spécialité
+        
         if($info_seulement) {
             $sql .= " AND p.specialite = 'informatique'";
+        }
+        elseif(!$info_seulement) {
+            $sql .= " AND p.specialite != 'informatique'";
         }
 
         $sql .= " ORDER BY (
