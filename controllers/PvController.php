@@ -552,7 +552,7 @@ class PvController
         }
 
         try {
-            require_once __DIR__ . '/../libs/fpdf186/fpdi/src/autoload.php';
+            require_once __DIR__ . '/../libs/fpdi/src/autoload.php';
             
             $pdf = new \setasign\Fpdi\Fpdi();
 

@@ -180,38 +180,43 @@ class juryController {
             $nbInfoActuel = $this->jury->getNbJuryInfoDispo($id);
 
             if($nbJury == 1){
-                // Besoin de 2 profs -> on prend 2 profs info en priorité
-                $profs = $this->jury->getProfDispo($id, true); // info seulement
+                if($nbInfoActuel ==0 ){
+                    // Besoin de 2 profs -> on prend 2 profs info en priorité
+                    $profs = $this->jury->getProfDispo($id, true); // info seulement
+                    if(count($profs) >= 2){
+                        $this->jury->insert($id, $profs[0]['id'], "Président");
+                        $this->jury->insert($id, $profs[1]['id'], "Rapporteur");
+                    } elseif(count($profs) == 1){
+                        
+                        $profInfo = $profs[0];
+                        $autresProfs = $this->jury->getProfDispo($id, false);
+                        $autresProfs = array_filter(
+                            $autresProfs,
+                            fn($p) => $p['id'] !== $profInfo['id']
+                        );
+                        $autresProfs = array_values($autresProfs);
+                        if(count($autresProfs) >= 1){
+                            $this->jury->insert($id, $profInfo['id'],      "Président");
+                            $this->jury->insert($id, $autresProfs[0]['id'], "Rapporteur");
+                        } else {
+                            echo "Soutenance $id : impossible d'affecter un jury complet.\n";
+                        }
 
-                if(count($profs) >= 2){
-                    
-                    $this->jury->insert($id, $profs[0]['id'], "Président");
-                    $this->jury->insert($id, $profs[1]['id'], "Rapporteur");
-
-                } elseif(count($profs) == 1){
-                    
-                    $profInfo = $profs[0];
-                    $autresProfs = $this->jury->getProfDispo($id, false);
-
-                    
-                    $autresProfs = array_filter(
-                        $autresProfs,
-                        fn($p) => $p['id'] !== $profInfo['id']
-                    );
-                    $autresProfs = array_values($autresProfs);
-
-                    if(count($autresProfs) >= 1){
-                        $this->jury->insert($id, $profInfo['id'],      "Président");
-                        $this->jury->insert($id, $autresProfs[0]['id'], "Rapporteur");
+                    } else {
+                        
+                        echo "Soutenance $id : aucun prof informatique disponible.\n";
+                    }
+                }elseif($nbInfoActuel == 1){
+                    // Besoin de 1 prof info + 1 autre prof
+                    $profsInfo = $this->jury->getProfDispo($id, true);
+                    $profsAutres = $this->jury->getProfDispo($id, false);
+                    if(count($profsInfo) >= 1 && count($profsAutres) >= 1){
+                        $this->jury->insert($id, $profsInfo[0]['id'], "Président");
+                        $this->jury->insert($id, $profsAutres[0]['id'], "Rapporteur");
                     } else {
                         echo "Soutenance $id : impossible d'affecter un jury complet.\n";
                     }
-
-                } else {
-                    
-                    echo "Soutenance $id : aucun prof informatique disponible.\n";
                 }
-
             } elseif($nbJury == 2){
                 // Besoin d'1 seul prof supplémentaire
                 $besoinInfo = ($nbInfoActuel < 2);
