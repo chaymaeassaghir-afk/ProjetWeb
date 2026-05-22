@@ -16,12 +16,13 @@ require_once 'controllers/juryController.php';
 require_once 'controllers/profController.php';
 require_once 'controllers/PlanningController.php';
 require_once 'models/Planning.php';
-
+require_once 'controllers/VerificateurController.php';
+require_once 'controllers/PvGenerator.php';
 
 
 // ── Récupérer controller et page depuis l'URL ──
-$controller = $_GET['controller'] ?? 'etudiant';
-$page       = $_GET['page']       ?? 'dashboard';
+$controller = $_GET['controller'] ?? 'dashboard';
+$page       = $_GET['page']     ??   'dashboard';
 
 // ── Instancier le bon controller ──
 switch($controller) {
@@ -52,6 +53,9 @@ switch($controller) {
     case 'genererPDF':
         $planninModel = new Planning($pdo);
         break;  
+    case 'verificateur':
+        $ctrl= new VerificateurController($pdo);
+        break;
     case 'dashboard':
     default:    
         $ctrl = new JuryController($pdo);
@@ -167,34 +171,16 @@ switch($controller) {
     case 'pv':
         switch ($page) {
             case 'index':
-                // Vue principale
                 $ctrl->index();
                 break;
             case 'telecharger':
-                $scope       = $_GET['scope'] ?? 'tous';
-                $encadrantId = (int)($_GET['encadrant_id'] ?? 0);
-                $etudiantId  = (int)($_GET['etudiant_id'] ?? 0);
-                match ($scope) {
-                    'encadrant' => $encadrantId > 0
-                        ? $ctrl->_telechargerParEncadrant($encadrantId)
-                        : die("encadrant_id requis"),
-                    'etudiant' => $etudiantId > 0
-                        ? $ctrl->_telechargerUnPV($etudiantId)
-                        : die("etudiant_id requis"),
-                    default => $ctrl->_telechargerTous(),
-                };
+                $generateur=new PvGenerator($pdo);
+                $generateur->genererPDF($_GET['id']);
                 break;
             case 'generer':
-                $etudiantId = (int)($_GET['etudiant_id'] ?? 0);
-                if ($etudiantId > 0) {
-                    $ctrl->_genererPV($etudiantId);
-                } else {
-                    echo "ID invalide";
-                }
+                $ctrl-> genererTousLesPV();
                 break;
-            default:
-                $ctrl->index();
-                break;
+            
         }
         break;
     //configuration 
@@ -259,7 +245,10 @@ switch($controller) {
     case 'genererPDF':
         
         $planninModel->genererPlanningPDF();
-        break;    
+        break;  
+    case 'verificateur':
+        $ctrl->tout();
+        break;      
 
     // ── DASHBOARD ──
     case 'dashboard':
