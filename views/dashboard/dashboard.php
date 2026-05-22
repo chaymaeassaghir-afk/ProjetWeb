@@ -18,7 +18,7 @@
 
 <body>
 
-<div class="main" style="background-color: #dddcdc;">
+<div class="main" style="background-color: #EAF6F6;">
 
     <!-- TOPBAR -->
     <div class="topbar">
@@ -34,7 +34,7 @@
     <!-- CARD -->
     <div class="row">
         <div class="col-6">
-            <div class="card-body-custom" style="background-color:#92e4e9">
+            <div class="card-body-custom" style="background-color:#66a2a6">
                 <div class="card-head">
                     <div class="card-head-title">
                         <i class="bi bi-speedometer2"></i>
@@ -51,8 +51,8 @@
                 <!-- ACTION BUTTON -->
                 <div class="mt-3 d-flex justify-content-end">
                     <a href="index.php?controller=soutenance&page=afficherFormulairePlanification"
-                            class="btn btn-primary "
-                              style="border-radius:10px;padding:10px 16px;font-weight:600;background-color: #f4e28b;color:gray;">
+                            class="btn btn-primary-custom "
+                              style="border-radius:10px;padding:10px 16px;font-weight:600;background-color:#EAF6F6;color:#375e69;">
 
                              <i class="bi bi-magic"></i> Generer le planning
                     </a>
@@ -64,32 +64,25 @@
             
         </div>
         <div class="col-6">
-            <div class="card-body-custom" style="background-color:#92e4e9">
+            <div class="card-body-custom" style="background-color:#66a2a6">
                 <div class="card-head">
                     <div class="card-head-title">
                         <i class="bi bi-speedometer2"></i>
                         Recuperation des documents
                     </div>
                 </div>
-
-                
-                
-
                 <!-- ACTION BUTTON -->
                 <div class="mt-3 d-flex justify-content-end">
-
                     <a href="index.php?controller=genererPDF"
-                            class="btn btn-primary "
-                            style="border-radius:10px;padding:10px 16px;font-weight:600;background-color: #f4e28b;color:gray;">
-
-
+                            class="btn btn-primary-custom "
+                            style="border-radius:10px;padding:10px 16px;font-weight:600;background-color:#EAF6F6;color:#375e69;">
                              <i class="bi bi-magic"></i> Télécharger le planning
                     </a>
                 </div>
                 <div class="mt-3 d-flex justify-content-end">
                     <a href="index.php?controller=etudiant&page=affecter_pdf"
-                            class="btn btn-primary "
-                              style="border-radius:10px;padding:10px 16px;font-weight:600;background-color: #f4e28b;color:gray;">
+                            class="btn btn-primary-custom "
+                              style="border-radius:10px;padding:10px 16px;font-weight:600;background-color:#EAF6F6;color:#375e69;">
 
                              <i class="bi bi-magic"></i> Télécharger le PDF des encadrants
                     </a>
@@ -103,26 +96,27 @@
         </div>
     </div>
     <!-- statistiques -->
-     <div class="row">
-        <div class="col-6">
-            <h4 class="">Soutenances par prof jury</h4>
+     
+        <div >
+            <h4 class="page-title">Soutenances par prof jury</h4>
             <div><br></br></div>
             <div style="position: relative; width: 100%; height: 350px;">
                 <canvas id="juryChart" role="img" aria-label="Soutenances par prof jury"></canvas>
             </div>
         </div>
         
-        <div class="col-6">
-            <h4 class="">Soutenances par filière</h4>
+        <div >
+            <h4 class="page-title">Soutenances par filière</h4>
             <div style="position: relative; width: 100%; height: 350px;">
                 <canvas id="filiereChart" role="img" aria-label="Soutenances par filière"></canvas>
             </div>
         </div>
-    </div>
-            <h4 class="">Étudiants encadrés par prof</h4>
-            <div><br></br></div>
-            <div style="position: relative; width: 100%; height: 350px;">
-                <canvas id="encadrantChart" role="img" aria-label="Étudiants encadrés par prof"></canvas>
+            <div >
+                <h4 class="page-title">Étudiants encadrés par prof</h4>
+                <div><br></br></div>
+                <div style="position: relative; width: 100%; height: 350px;">
+                    <canvas id="encadrantChart" role="img" aria-label="Étudiants encadrés par prof"></canvas>
+                </div>
             </div>
         
 </div>
@@ -139,7 +133,7 @@ new Chart(document.getElementById('juryChart'), {
         datasets: [{
             label: 'Soutenances comme jury',
             data: totaux,
-            backgroundColor: '#eeb18c',
+            backgroundColor: '#375e69',
             borderRadius: 6,
         }]
     },
@@ -164,7 +158,7 @@ new Chart(document.getElementById('encadrantChart'), {
         datasets: [{
             label: "Étudiants encadrés",
             data: totaux_enc,
-            backgroundColor: '#92e4e9',
+            backgroundColor: '#23242c',
             borderRadius: 6,
         }]
     },
@@ -188,7 +182,7 @@ new Chart(document.getElementById('filiereChart'), {
         labels: filieres,
         datasets: [{
             data: totaux_fil,
-            backgroundColor: ['#92e4e9', '#eeb18c', '#D85A30'],
+            backgroundColor: ['#23242c', '#375e69', '#5ea3b7'],
         }]
     },
     options: {
