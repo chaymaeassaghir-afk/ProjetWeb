@@ -175,7 +175,6 @@ class juryController {
             if($nbJury >= 3){
                 continue;
             }
-
             // Compter combien de profs info sont déjà dans ce jury
             $nbInfoActuel = $this->jury->getNbJuryInfoDispo($id);
 

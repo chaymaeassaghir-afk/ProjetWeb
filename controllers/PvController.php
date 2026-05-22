@@ -1,583 +1,170 @@
 <?php
- 
-require_once __DIR__ . '/PvGenerator.php';
- 
-/**
- * PvController
- *
- * Gère :
- *   - La vue index : étudiants groupés par encadrant
- *   - La génération automatique des PVs (remplissage depuis BDD)
- *   - Le téléchargement PDF :
- *       scope=tous        → tous les PVs (ZIP)
- *       scope=encadrant   → PVs d'un encadrant (ZIP ou PDF fusionné)
- *       scope=etudiant    → PV d'un seul étudiant
- *
- * Le remplissage des notes (C, M, S) reste MANUEL après impression.
- */
-class PvController
-{
-    private PDO $db;
- 
-    /** Dossier de stockage des PDFs générés (chemin absolu) */
-    private string $pvDir;
- 
-   public function __construct(PDO $db)
-{
-    $this->db = $db;
-    
-    // Chemin absolu sans dépendre de realpath (qui échoue si le dossier n'existe pas)
-    $this->pvDir = __DIR__ . '/../../storage/pvs/';
-    
-    // Créer le dossier récursivement s'il n'existe pas
-    if (!is_dir($this->pvDir)) {
-        mkdir($this->pvDir, 0755, true);
+
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../models/PV.php';
+
+class PVController {
+
+    private PDO $pdo;
+    private PV $pvModel;
+
+    public function __construct(PDO $pdo)
+    {
+        $this->pdo = $pdo;
+        $this->pvModel = new PV($pdo);
     }
-    
-    // Normaliser le chemin après création
-    $this->pvDir = realpath($this->pvDir) . DIRECTORY_SEPARATOR;
+
+    public function index()
+{
+
+    $sql = "
+
+    SELECT
+
+        pv.*,
+
+        e.nom,
+        e.prenom,
+        e.filiere,
+
+        p1.nom AS president,
+        p2.nom AS rapporteur,
+        p3.nom AS encadrant
+
+    FROM pv
+
+    JOIN soutenance s
+        ON pv.soutenance_id = s.id_stnc
+
+    JOIN etudiant e
+        ON s.etudiant_id = e.id_etudiant
+
+    JOIN professeur p1
+        ON pv.president_jury_id = p1.id
+
+    JOIN professeur p2
+        ON pv.rapporteur_id = p2.id
+
+    JOIN professeur p3
+        ON pv.encadrant_id = p3.id
+
+    ORDER BY pv.created_at DESC
+
+    ";
+
+    $stmt = $this->pdo->query($sql);
+
+    $pvs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    require_once __DIR__ . '/../views/pv/index.php';
 }
-    
 
-    // =========================================================================
-    // ACTION : index — liste des étudiants groupée par encadrant
-    // =========================================================================
-    public function index(): void
-    {
-        $stmt = $this->db->query("
-            SELECT
-                p.id                    AS encadrant_id,
-                p.nom                   AS encadrant_nom,
-                p.prenom                AS encadrant_prenom,
+    public function genererPV($soutenance_id)
+{
+    // récupérer les membres du jury
+    $sql = "
+        SELECT 
+            j.id_prof,
+            j.role
+        FROM jury j
+        WHERE j.id_soutenance = ?
+          AND j.role IN ('encadrant', 'rapporteur', 'president')
+    ";
 
-                e.id_etudiant           AS etudiant_id,
-                e.nom                   AS etudiant_nom,
-                e.prenom                AS etudiant_prenom,
-                e.filiere,
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([$soutenance_id]);
 
-                s.id_stnc,
-                s.titre_pfe,
-                s.date                  AS date_soutenance,
-                s.heure_debut,
-                s.heure_fin,
+    // récupérer les 3 lignes
+    $jury = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                sa.numero_salle,
-
-                IF(pv.id IS NOT NULL, 1, 0) AS pv_existe
-
-            FROM professeur p
-
-            JOIN etudiant e
-                ON e.id_prof = p.id
-
-            LEFT JOIN soutenance s
-                ON s.etudiant_id = e.id_etudiant
-
-            LEFT JOIN salle sa
-                ON sa.id_salle = s.id_salle
-
-            LEFT JOIN pv
-                ON pv.soutenance_id = s.id_stnc
-
-            ORDER BY p.nom, p.prenom, e.nom, e.prenom
-        ");
-
-        // Structurer les données
-        $encadrants = [];
-
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-
-            $eid = $row['encadrant_id'];
-
-            if (!isset($encadrants[$eid])) {
-
-                $encadrants[$eid] = [
-                    'id' => $eid,
-                    'nom' => $row['encadrant_nom'],
-                    'prenom' => $row['encadrant_prenom'],
-                    'etudiants' => []
-                ];
-            }
-
-            $encadrants[$eid]['etudiants'][] = $row;
-        }
-
-        require 'views/pv/index.php';
+    if (!$jury) {
+        die('Jury introuvable');
     }
 
-    // =========================================================================
-    // ACTION : genererPV
-    // =========================================================================
-    public function genererPV(int $etudiant_id): void
-    {
-        $data = $this->_getDataEtudiant($etudiant_id);
+    // initialisation
+    $encadrantId = null;
+    $rapporteurId = null;
+    $presidentId = null;
 
-        if (!$data) {
+    // parcourir les membres du jury
+    foreach ($jury as $membre) {
 
-            http_response_code(404);
-            echo "Étudiant introuvable.";
-            return;
+        if ($membre['role'] === 'Encadrant') {
+            $encadrantId = $membre['id_prof'];
         }
 
-        $this->_genererPDF($data);
-
-        if (!empty($data['id_stnc'])) {
-
-            $stmt = $this->db->prepare("
-                INSERT INTO pv (soutenance_id, note_contenu, note_memoire,
-                                note_soutenance, moyenne, mention,
-                                president_jury_id, date_signature)
-
-                VALUES (:soutenance_id, 0, 0, 0, 0, 'Ajourné', 1, CURDATE())
-
-                ON DUPLICATE KEY UPDATE
-                    updated_at = CURRENT_TIMESTAMP
-            ");
-
-            $stmt->execute([
-                'soutenance_id' => $data['id_stnc']
-            ]);
+        elseif ($membre['role'] === 'Rapporteur') {
+            $rapporteurId = $membre['id_prof'];
         }
 
-        $_SESSION['flash'] = [
-            'type' => 'success',
-            'msg'  => 'PV généré avec succès.'
-        ];
-
-        header('Location: index.php?controller=pv&action=index');
-        exit;
-    }
-
-    // =========================================================================
-    // ACTION : telecharger
-    // =========================================================================
-    public function telecharger(): void
-    {
-        $scope = $_GET['scope'] ?? 'tous';
-        $format = $_GET['format'] ?? 'zip'; // 'zip' ou 'pdf'
-
-        $encadrantId = (int)($_GET['encadrant_id'] ?? 0);
-        $etudiantId = (int)($_GET['etudiant_id'] ?? 0);
-
-        switch ($scope) {
-
-            case 'etudiant':
-
-                if ($etudiantId <= 0) {
-                    $this->_badRequest("etudiant_id requis");
-                    return;
-                }
-
-                $this->_telechargerUnPV($etudiantId);
-                break;
-
-            case 'encadrant':
-
-                if ($encadrantId <= 0) {
-                    $this->_badRequest("encadrant_id requis");
-                    return;
-                }
-
-                if ($format === 'pdf') {
-                    $this->_telechargerParEncadrantPDF($encadrantId);
-                } else {
-                    $this->_telechargerParEncadrant($encadrantId);
-                }
-                break;
-
-            default:
-                if ($format === 'pdf') {
-                    $this->_telechargerTousPDF();
-                } else {
-                    $this->_telechargerTous();
-                }
-                break;
+        elseif ($membre['role'] === 'Président') {
+            $presidentId = $membre['id_prof'];
         }
     }
 
-    // =========================================================================
-    // PRIVÉ : données étudiant
-    // =========================================================================
-    private function _getDataEtudiant(int $etudiant_id): ?array
-    {
-        $stmt = $this->db->prepare("
-            SELECT
-                e.id_etudiant           AS etudiant_id,
-                e.nom                   AS etudiant_nom,
-                e.prenom                AS etudiant_prenom,
-                e.filiere,
+    // vérifier que les 3 existent
+    if (!$encadrantId || !$rapporteurId || !$presidentId) {
+        die('Jury incomplet');
+    }
 
-                p.nom                   AS encadrant_nom,
-                p.prenom                AS encadrant_prenom,
+    // vérifier si PV existe déjà
+    $check = $this->pdo->prepare("
+        SELECT id
+        FROM pv
+        WHERE soutenance_id = ?
+    ");
 
-                s.id_stnc,
-                s.titre_pfe,
-                s.date,
-                s.heure_debut,
-                s.heure_fin,
+    $check->execute([$soutenance_id]);
 
-                sa.numero_salle
+    if ($check->fetch()) {
+        die('PV déjà généré');
+    }
 
-            FROM etudiant e
+    // insertion du PV
+    $insert = $this->pdo->prepare("
+        INSERT INTO pv(
+            soutenance_id,
+            president_jury_id,
+            rapporteur_id,
+            encadrant_id,
+            statut
+        )
+        VALUES(?,?,?,?,?)
+    ");
 
-            LEFT JOIN professeur p
-                ON p.id = e.id_prof
+    try {
 
-            LEFT JOIN soutenance s
-                ON s.etudiant_id = e.id_etudiant
-
-            LEFT JOIN salle sa
-                ON sa.id_salle = s.id_salle
-
-            WHERE e.id_etudiant = ?
-        ");
-
-        $stmt->execute([$etudiant_id]);
-
-        $base = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$base) {
-            return null;
-        }
-
-        // Jury
-        $stmt = $this->db->prepare("
-            SELECT
-                p.nom,
-                p.prenom,
-                j.role
-
-            FROM jury j
-
-            JOIN professeur p
-                ON p.id = j.id_prof
-
-            WHERE j.id_soutenance = ?
-
-            ORDER BY j.role DESC
-        ");
-
-        $stmt->execute([$base['id_stnc']]);
-
-        $jury = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_merge($base, [
-            'jury' => $jury
+        $insert->execute([
+            $soutenance_id,
+            $presidentId,
+            $rapporteurId,
+            $encadrantId,
+            'brouillon'
         ]);
+
+        echo "PV généré avec succès";
+
+    } catch(PDOException $e) {
+
+        die("Erreur SQL : " . $e->getMessage());
     }
-
-    // =========================================================================
-    // Génération PDF
-    // =========================================================================
-    private function _genererPDF(array $data): void
-    {
-        $chemin = $this->pvDir . $this->_nomFichier($data);
-
-        PvGenerator::generer($data, $chemin);
-    }
-
-    private function _nomFichier(array $data): string
-    {
-        $nom = preg_replace(
-            '/[^a-zA-Z0-9_\-]/',
-            '_',
-            $data['etudiant_nom'] . '_' . $data['etudiant_prenom']
-        );
-
-        return "pv_{$data['etudiant_id']}_{$nom}.pdf";
-    }
-
-    // =========================================================================
-    // Télécharger un seul PV
-    // =========================================================================
-    public function _telechargerUnPV(int $etudiant_id): void
+}
+public function genererTousLesPV()
 {
-    var_dump("1- etudiant_id reçu : $etudiant_id");
+    $sql = "SELECT id_stnc FROM soutenance";
 
-    $data = $this->_getDataEtudiant($etudiant_id);
-    var_dump("2- data trouvée : " . ($data ? 'OUI' : 'NON'));
+    $stmt = $this->pdo->query($sql);
 
-    if (!$data) {
-        $this->_badRequest("Étudiant introuvable");
-        return;
+    $soutenances = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach($soutenances as $s){
+
+        $this->genererPV($s['id_stnc']);
     }
 
-    $chemin = $this->pvDir . $this->_nomFichier($data);
-    var_dump("3- chemin : $chemin");
-    var_dump("4- fichier existe : " . (file_exists($chemin) ? 'OUI' : 'NON'));
-
-    if (!file_exists($chemin)) {
-        $this->_genererPDF($data);
-        var_dump("5- après génération : " . (file_exists($chemin) ? 'OUI' : 'NON'));
-    }
-
-    $this->_envoyerPDF($chemin, $this->_nomFichier($data));
+    header('Location:index.php?controller=pv&page=index');
+    exit();
 }
 
-    // =========================================================================
-    // Télécharger par encadrant
-    // =========================================================================
-    public function _telechargerParEncadrant(int $encadrant_id): void
-    {
-        $stmt = $this->db->prepare("
-            SELECT id_etudiant
-            FROM etudiant
-            WHERE id_prof = ?
-        ");
-
-        $stmt->execute([$encadrant_id]);
-
-        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-        if (empty($ids)) {
-            echo "Aucun étudiant.";
-            return;
-        }
-
-        $stmt = $this->db->prepare("
-            SELECT nom, prenom
-            FROM professeur
-            WHERE id = ?
-        ");
-
-        $stmt->execute([$encadrant_id]);
-
-        $enc = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        $nomEnc = preg_replace(
-            '/[^a-zA-Z0-9_\-]/',
-            '_',
-            $enc['nom'] ?? 'encadrant'
-        );
-
-        $fichiers = $this->_assurerPVs($ids);
-
-        $this->_envoyerZip(
-            $fichiers,
-            "pvs_encadrant_{$nomEnc}.zip"
-        );
-    }
-
-    // =========================================================================
-    // Télécharger tous
-    // =========================================================================
-    public function _telechargerTous(): void
-    {
-        $stmt = $this->db->query("
-            SELECT id_etudiant
-            FROM etudiant
-            ORDER BY nom, prenom
-        ");
-
-        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-        $fichiers = $this->_assurerPVs($ids);
-
-        $this->_envoyerZip($fichiers, "tous_les_pvs.zip");
-    }
-
-    // =========================================================================
-    // Assurer génération PVs
-    // =========================================================================
-    private function _assurerPVs(array $etudiant_ids): array
-    {
-        $fichiers = [];
-
-        foreach ($etudiant_ids as $id) {
-
-            $data = $this->_getDataEtudiant((int)$id);
-
-            if (!$data) {
-                continue;
-            }
-
-            $chemin = $this->pvDir . $this->_nomFichier($data);
-
-            if (!file_exists($chemin)) {
-                $this->_genererPDF($data);
-            }
-
-            if (file_exists($chemin)) {
-                $fichiers[] = $chemin;
-            }
-        }
-
-        return $fichiers;
-    }
-
-    // =========================================================================
-    // Envoyer PDF
-    // =========================================================================
-    private function _envoyerPDF(string $chemin, string $nom): void
-{
-    if (!file_exists($chemin)) {
-        http_response_code(404);
-        echo "Fichier introuvable.";
-        return;
-    }
-
-    // ✅ Vider le buffer
-    while (ob_get_level()) {
-        ob_end_clean();
-    }
-
-    header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="' . $nom . '"');
-    header('Content-Length: ' . filesize($chemin));
-
-    readfile($chemin);
-    exit;
+    
 }
-
-    // =========================================================================
-    // Envoyer ZIP
-    // =========================================================================
-   private function _envoyerZip(array $fichiers, string $nom_zip): void
-{
-    if (empty($fichiers)) {
-        echo "Aucun PV disponible.";
-        return;
-    }
-
-    $tmp = tempnam(sys_get_temp_dir(), 'pvs_') . '.zip';
-    $zip = new ZipArchive();
-
-    if ($zip->open($tmp, ZipArchive::CREATE) !== true) {
-        http_response_code(500);
-        echo "Erreur ZIP.";
-        return;
-    }
-
-    foreach ($fichiers as $f) {
-        $zip->addFile($f, basename($f));
-    }
-
-    $zip->close();
-
-    // ✅ Vider tout output précédent (warnings, HTML...)
-    while (ob_get_level()) {
-        ob_end_clean();
-    }
-
-    header('Content-Type: application/zip');
-    header('Content-Disposition: attachment; filename="' . $nom_zip . '"');
-    header('Content-Length: ' . filesize($tmp));
-
-    readfile($tmp);
-    unlink($tmp);
-    exit;
-}
-
-    private function _badRequest(string $msg): void
-    {
-        http_response_code(400);
-        echo $msg;
-    }
-
-    // =========================================================================
-    // Télécharger par encadrant en PDF fusionné
-    // =========================================================================
-    private function _telechargerParEncadrantPDF(int $encadrant_id): void
-    {
-        $stmt = $this->db->prepare("
-            SELECT id_etudiant
-            FROM etudiant
-            WHERE id_prof = ?
-        ");
-
-        $stmt->execute([$encadrant_id]);
-
-        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-        if (empty($ids)) {
-            echo "Aucun étudiant.";
-            return;
-        }
-
-        $stmt = $this->db->prepare("
-            SELECT nom, prenom
-            FROM professeur
-            WHERE id = ?
-        ");
-
-        $stmt->execute([$encadrant_id]);
-
-        $enc = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        $nomEnc = preg_replace(
-            '/[^a-zA-Z0-9_\-]/',
-            '_',
-            $enc['nom'] ?? 'encadrant'
-        );
-
-        $fichiers = $this->_assurerPVs($ids);
-
-        $this->_envoyerPDFFusionne($fichiers, "pvs_encadrant_{$nomEnc}.pdf");
-    }
-
-    // =========================================================================
-    // Télécharger tous en PDF fusionné
-    // =========================================================================
-    private function _telechargerTousPDF(): void
-    {
-        $stmt = $this->db->query("
-            SELECT id_etudiant
-            FROM etudiant
-            ORDER BY nom, prenom
-        ");
-
-        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-        $fichiers = $this->_assurerPVs($ids);
-
-        $this->_envoyerPDFFusionne($fichiers, "tous_les_pvs.pdf");
-    }
-
-    // =========================================================================
-    // Envoyer PDF fusionné
-    // =========================================================================
-    private function _envoyerPDFFusionne(array $fichiers, string $nom_pdf): void
-    {
-        if (empty($fichiers)) {
-            echo "Aucun PV disponible.";
-            return;
-        }
-
-        // Filtrer les fichiers qui existent vraiment
-        $fichiersExistants = array_filter($fichiers, 'file_exists');
-
-        if (empty($fichiersExistants)) {
-            echo "Aucun fichier PV trouvé.";
-            return;
-        }
-
-        try {
-            require_once __DIR__ . '/../libs/fpdi/src/autoload.php';
-            
-            $pdf = new \setasign\Fpdi\Fpdi();
-
-            foreach ($fichiersExistants as $fichier) {
-                $pageCount = $pdf->setSourceFile($fichier);
-
-                for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-                    $templateId = $pdf->importPage($pageNo);
-                    $size = $pdf->getTemplateSize($templateId);
-
-                    $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-                    $pdf->useTemplate($templateId);
-                }
-            }
-
-            header('Content-Type: application/pdf');
-            header('Content-Disposition: attachment; filename="' . $nom_pdf . '"');
-
-            $pdf->Output('I');
-            exit;
-
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo "Erreur lors de la fusion des PDFs : " . $e->getMessage();
-        }
-    }
-}
-?>

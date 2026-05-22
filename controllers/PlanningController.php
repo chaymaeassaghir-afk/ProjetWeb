@@ -31,6 +31,9 @@ class PlanningController {
         $this->soutenanceCtrl->planifierDates();
         $this->juryCtrl->affecterJuryAuto();
         $this->soutenanceCtrl->affecterSalles();
+
+        header('Location: index.php?controller=dashboard');
+        exit();
     }
 
 

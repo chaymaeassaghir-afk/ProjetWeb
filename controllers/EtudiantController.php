@@ -61,6 +61,8 @@ class EtudiantController{
             $email_pro=$_POST['email_pro'];
             $filiere=$_POST['filiere'];
             $this->model->insert($CNE,$nom,$prenom,$email_perso,$email_pro,$filiere,null);
+            $this->remplirSoutenances($filiere);
+
         }
         header("location:/projetweb/index.php?controller=etudiant&page=liste_etudiants");
         exit();
@@ -135,32 +137,14 @@ class EtudiantController{
     public function genererAffectation() {
         $etudiants = $this->model->getEtudiants();
         $profs = $this->profModel->getProfs();
-        foreach ($etudiants as $etudiant) {
-
-            // profs disponibles
-            $profsDisponibles = [];
-
-            // vérifier nombre d'affectations
-            foreach($profs as $prof) {
-
-                $nb = $this->profModel->getNbEtudiants($prof['id']);
-                if($nb < 4) {
-                    $profsDisponibles[] = $prof;
-                }
-            }
-            if(empty($profsDisponibles)) {
-                continue; // aucun prof dispo, on skip
-            }
-            $profAleatoire = $profsDisponibles[array_rand($profsDisponibles)];
-
+        
+        foreach ($etudiants as $index => $etudiant) {
+            $prof = $profs[$index % count($profs)];    
             $this->model->affecterProf(
-
                 $etudiant['id_etudiant'],   
-                $profAleatoire['id']
+                $prof['id']
             );
         }
-
-        
     }     
     
     public function genererPDF() {

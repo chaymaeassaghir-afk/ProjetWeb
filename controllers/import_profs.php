@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fichier'])) {
                 <?php endif; ?>
 
                 <div class="text-center mt-3">
-                    <a href="?" class="btn btn-import text-white">
+                    <a href="index.php?controller=prof" class="btn btn-import text-white">
                         Importer un autre fichier
                     </a>
                 </div>
