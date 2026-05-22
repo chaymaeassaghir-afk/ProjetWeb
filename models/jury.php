@@ -261,7 +261,7 @@ class jury {
         return (int) $stmt->fetchColumn();
     }
 
-    #fin israe
+    
    public function getStatJury(){
         $sql="SELECT p.nom,p.prenom ,count(j.id_soutenance) as total FROM jury as j
             JOIN professeur as p ON j.id_prof=p.id
@@ -289,6 +289,7 @@ class jury {
         $stmt=$this->pdo->query($sql);
         return $stmt->fetchall();
     }
+    #fin israe
 }
 
 ?>

@@ -152,14 +152,18 @@ class Verificateur {
                     CONCAT(s2.date,' ',s2.heure_debut)
                   ) BETWEEN 0 AND :pause
         ");
+
         $stmt->execute([':pause' => $this->pauseMinSecondes - 1]);
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $nbr= $stmt->rowCount();
+        $alertes[] = "$nbr situations où un professeur n'a pas la pause minimale de "
+                   . ($this->pauseMinSecondes / 60) . " minutes entre deux soutenances.";
+        /*foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $pauseMinutes = $this->pauseMinSecondes / 60;
             $alertes[] = " Prof {$row['prenom']} {$row['nom']} : pause insuffisante le {$row['date']} "
                        . "entre soutenance #{$row['id1']} (fin {$row['fin1']}) "
                        . "et #{$row['id2']} (début {$row['debut2']}) "
-                       . "— minimum requis : {$pauseMinutes} min.";
-        }
+                       . "— minimum requis : {$pauseMinutes} min.";    
+        }*/
         return $alertes;
     }
 
@@ -189,6 +193,7 @@ class Verificateur {
             $alertes[] = "Prof {$row['prenom']} {$row['nom']} affecté à deux soutenances simultanées "
                        . "le {$row['date']} : #{$row['id1']} ({$row['h1d']}–{$row['h1f']}) "
                        . "et #{$row['id2']} ({$row['h2d']}–{$row['h2f']}).";
+                      
         }
         return $alertes;
     }
