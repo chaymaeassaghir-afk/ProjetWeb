@@ -11,7 +11,7 @@
 
 <div class="main-content">
     <div class="d-flex align-items-center gap-3 mb-4">
-        <h4 class="fw-bold mb-0">🔍 <?= htmlspecialchars($titre) ?></h4>
+        <h4 class="fw-bold mb-0"> <?= htmlspecialchars($titre) ?></h4>
         <a href="index.php?controller=verificateur" class="btn btn-outline-secondary btn-sm ms-auto">
             Tout vérifier
         </a>
@@ -19,7 +19,7 @@
 
     <?php if ($rapport['ok']): ?>
     <div class="alert alert-success d-flex align-items-center gap-2" style="border-radius:12px;">
-        <span style="font-size:1.5rem;">✅</span>
+        <span style="font-size:1.5rem;"></span>
         <strong>Aucune anomalie détectée — tout est conforme.</strong>
     </div>
     <?php else: ?>
@@ -36,7 +36,7 @@
     <?php endif; ?>
 
     <div class="d-flex gap-2">
-        <a href="index.php?controller=dashboard" class="btn btn-primary">
+        <a href="index.php?controller=dashboard" class="btn" style="background:#6FADAE; color:#fff;">
             ← Retour au tableau de bord
         </a>
         <a href="javascript:window.location.reload()" class="btn btn-outline-secondary">
