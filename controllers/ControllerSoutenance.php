@@ -205,7 +205,7 @@ class SoutenanceController {
             }
 
             $this->soutenanceModel->affecterDatesEtHoraires($nbJours,$dateDebut);
-
+            return true;
             
         }
     }

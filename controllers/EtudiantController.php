@@ -38,16 +38,20 @@ class EtudiantController{
     public function afficherImport(){
         require $_SERVER['DOCUMENT_ROOT'] . '/projetweb/views/etudiant/import.php';
     }
+
+
     public function afficherListe(){
+        $filieres = $this->model->getFilieresDistinctes(); // ← ajouter ça
+        
         if(isset($_GET['filiere']) && $_GET['filiere']!=''){
-            $filiere=$_GET['filiere'];
-            $etudiants=$this->model->getParFiliere($filiere);
-        }else{
-           $etudiants=$this->model->getEtudiants();
+            $etudiants = $this->model->getParFiliere($_GET['filiere']);
+        } else {
+            $etudiants = $this->model->getEtudiants();
         }
         require $_SERVER['DOCUMENT_ROOT'] . '/projetweb/views/etudiant/liste.php';
-       
     }
+
+
     public function afficherFormulaireAjout(){
         require $_SERVER['DOCUMENT_ROOT'] . '/projetweb/views/etudiant/ajouteretudiant.php';
     }
