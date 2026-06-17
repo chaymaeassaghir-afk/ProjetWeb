@@ -16,14 +16,17 @@ require_once ($_SERVER['DOCUMENT_ROOT'].'/projetweb/views/sidebar.html');
     <div class="main-content">
         <h2 class="form-title"> Liste Des Etudiants </h2>
         <form action="/projetweb/index.php?controller=etudiant&page=liste_etudiants" method="get">
+            <input type="hidden" name="controller" value="etudiant">
             <input type="hidden" name="page" value="liste_etudiants">
             <div class="mb-3 d-flex align-items-center gap-3">
                 <label for="filiere" class="form-label mb-0">Filtrer par filière :</label>
                     <select name="filiere" id="filiere" class="form-select w-auto" onchange="this.form.submit()">
                         <option value="">Toutes les filières</option>
-                        <option value="GI" <?= (isset($_GET['filiere']) && $_GET['filiere']=='GI')?'selected':'' ?>>Génie Informatique</option>
-                        <option value="DATA" <?= (isset($_GET['filiere']) && $_GET['filiere']=='DATA')?'selected':'' ?>>Ingénierie des données</option>
-                        <option value="TDIA" <?= (isset($_GET['filiere']) && $_GET['filiere']=='TDIA')?'selected':'' ?>>Transformation Digitale & IA</option>
+                        <?php foreach($filieres as $f): ?>
+                            <option value="<?= $f ?>" <?= (isset($_GET['filiere']) && $_GET['filiere']==$f) ? 'selected' : '' ?>>
+                                <?= $f ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
              </div>
         </form>
