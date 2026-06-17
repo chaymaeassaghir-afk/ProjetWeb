@@ -151,27 +151,51 @@ class Soutenance {
         $stmt->execute([$date, $heure_debut, $heure_fin,  $id_stnc]);
     }
 
-    public function affecterDatesEtHoraires($dateDebut): void{
+    public function affecterDatesEtHoraires($nbr_jours, $dateDebut): void
+    {
+        // =========================
+        // RÉCUPÉRATION CONFIG
+        // =========================
+
         $config = [];
+
         $stmt = $this->pdo->query("
             SELECT cle, valeur
             FROM configuration
         ");
+
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $config[$row['cle']] = $row['valeur'];
         }
 
-        $jour = [];
-        $jour[0]= $dateDebut;
-        $jour[1]= date('Y-m-d', strtotime($dateDebut . ' +1 day'));
-        $jour[2]= date('Y-m-d', strtotime($dateDebut . ' +2 day'));
-        $this->jours = $jour;
-        // RÉCUPÉRATION
- 
+        // =========================
+        // GÉNÉRATION DES JOURS
+        // =========================
+
+        $this->jours = [];
+
+        for ($i = 0; $i < $nbr_jours; $i++) {
+            $this->jours[] = date(
+                'Y-m-d',
+                strtotime("$dateDebut +$i day")
+            );
+        }
+
+        // =========================
+        // RÉCUPÉRATION DES SOUTENANCES
+        // =========================
+
         $parFiliere = $this->getSoutenancesSansDate();
+
+        // Répartition équilibrée sur les jours
         $repartition = $this->calculerRepartition($parFiliere);
+
+        // =========================
         // GÉNÉRATION DES CRÉNEAUX
+        // =========================
+
         $creneaux = [];
+
         // Matin
         $heure = $config['heure_debut_matin'];
 
@@ -181,13 +205,16 @@ class Soutenance {
                 'H:i',
                 strtotime($heure . ' +60 minutes')
             );
+
             if ($fin > $config['heure_fin_matin']) {
                 break;
             }
+
             $creneaux[] = [
                 'debut' => $heure,
                 'fin'   => $fin
             ];
+
             $heure = $fin;
         }
 
@@ -214,11 +241,18 @@ class Soutenance {
         }
 
         // =========================
-        // AFFECTATION
+        // CONSTRUIRE LES SOUTENANCES PAR JOUR
         // =========================
+
+        $soutenancesParJour = [];
+
+        foreach ($this->jours as $jour) {
+            $soutenancesParJour[$jour] = [];
+        }
+
         foreach ($parFiliere as $filiere => $soutenances) {
 
-            $indexSoutenance = 0;
+            $index = 0;
 
             foreach ($this->jours as $jour) {
 
@@ -226,44 +260,79 @@ class Soutenance {
 
                 for ($i = 0; $i < $nbPourJour; $i++) {
 
-                    if (!isset($soutenances[$indexSoutenance])) { 
+                    if (!isset($soutenances[$index])) {
                         break;
                     }
 
-                    $soutenance = $soutenances[$indexSoutenance];
+                    $soutenancesParJour[$jour][] =
+                        $soutenances[$index];
 
-                    // Créneau correspondant
-                    $creneau = $creneaux[$i % count($creneaux)];
-                    $id_encadrant = $this->getEncadrantBySoutenance($soutenance['id_stnc']);
-                    if ($this->encadrantOccupe($id_encadrant, $jour, $creneau['debut'])) {
-                        // Chercher un autre créneau disponible
-                        $creneauTrouve = false;
-                        foreach ($creneaux as $autreCreneaux) {
-                            if (!$this->encadrantOccupe($id_encadrant, $jour, $autreCreneaux['debut'])) {
-                                $creneau = $autreCreneaux;
-                                $creneauTrouve = true;
-                                break;
-                            }
-                        }
-                        if (!$creneauTrouve) {
-                            // Pas de créneau dispo ce jour → passer au jour suivant
-                            continue;
-                        }
-                    }
-                    // Mise à jour
-                    $this->updateSoutenanceDate(
-                        $soutenance['id_stnc'],
-                        $jour,
-                        $creneau['debut'],
-                        $creneau['fin']
-                    );
-
-                    $indexSoutenance++;
+                    $index++;
                 }
             }
         }
-    }
 
+        // =========================
+        // AFFECTATION DES HORAIRES
+        // =========================
+
+        foreach ($soutenancesParJour as $jour => $listeJour) {
+
+            // Mélange des filières
+            shuffle($listeJour);
+
+            $nbCreneaux = count($creneaux);
+
+            foreach ($listeJour as $i => $soutenance) {
+
+                $creneau = $creneaux[$i % $nbCreneaux];
+
+                $idEncadrant = $this->getEncadrantBySoutenance(
+                    $soutenance['id_stnc']
+                );
+
+                // Vérifier disponibilité encadrant
+                if (
+                    $this->encadrantOccupe(
+                        $idEncadrant,
+                        $jour,
+                        $creneau['debut']
+                    )
+                ) {
+
+                    $trouve = false;
+
+                    foreach ($creneaux as $autreCreneau) {
+
+                        if (
+                            !$this->encadrantOccupe(
+                                $idEncadrant,
+                                $jour,
+                                $autreCreneau['debut']
+                            )
+                        ) {
+
+                            $creneau = $autreCreneau;
+                            $trouve = true;
+                            break;
+                        }
+                    }
+
+                    if (!$trouve) {
+                        continue;
+                    }
+                }
+
+                $this->updateSoutenanceDate(
+                    $soutenance['id_stnc'],
+                    $jour,
+                    $creneau['debut'],
+                    $creneau['fin']
+                );
+            }
+        }
+    }
+    
     public function encadrantOccupe($id_prof, $date, $heure_debut): bool {
         $stmt = $this->pdo->prepare("
             SELECT COUNT(*) FROM jury j
@@ -285,6 +354,30 @@ class Soutenance {
         ");
         $stmt->execute([$id_stnc]);
         return $stmt->fetchColumn();
+    }
+    public function capaciteSuffisante(int $nbJours): bool
+    {
+        // Nombre de salles
+        $stmt = $this->pdo->query("
+            SELECT COUNT(*) AS nb_salles
+            FROM salle
+        ");
+
+        $nbSalles = (int) $stmt->fetch(PDO::FETCH_ASSOC)['nb_salles'];
+
+        // Nombre de soutenances à planifier
+        $stmt = $this->pdo->query("
+            SELECT COUNT(*) AS nb_soutenances
+            FROM soutenance
+            WHERE date IS NULL
+        ");
+
+        $nbSoutenances = (int) $stmt->fetch(PDO::FETCH_ASSOC)['nb_soutenances'];
+
+        // Capacité totale
+        $capacite = $nbSalles * 7 * $nbJours;
+
+        return $capacite >= $nbSoutenances;
     }
 
 }

@@ -131,7 +131,8 @@ class salle{
             SELECT * FROM Salle
             WHERE id_salle NOT IN (
                 SELECT id_salle FROM Soutenance
-                WHERE date   = :date
+                WHERE id_salle IS NOT NULL 
+                AND date  = :date
                 AND heure_debut < :heure_fin
                 AND heure_fin   > :heure_debut
             )
