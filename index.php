@@ -18,6 +18,8 @@ require_once 'controllers/PlanningController.php';
 require_once 'models/Planning.php';
 require_once 'controllers/VerificateurController.php';
 require_once 'controllers/PvGenerator.php';
+require_once 'controllers/dbController.php';
+require_once 'controllers/ImportController.php';
 
 
 // ── Récupérer controller et page depuis l'URL ──
@@ -56,6 +58,12 @@ switch($controller) {
     case 'verificateur':
         $ctrl= new VerificateurController($pdo);
         break;
+    case 'db':
+        $ctrl = new dbController($pdo);
+        break;  
+    case 'import':
+        $ctrl= new ImportController($pdo);  
+        break;    
     case 'dashboard':
     default:    
         $ctrl = new JuryController($pdo);
@@ -248,7 +256,16 @@ switch($controller) {
         break;  
     case 'verificateur':
         $ctrl->tout();
-        break;      
+        break;   
+    //db
+    case 'db' :
+        $ctrl->deleteAll();
+        break;  
+    
+    // import
+    case 'import':
+        $ctrl->importerToutLeFichier();
+        break;   
 
     // ── DASHBOARD ──
     case 'dashboard':
