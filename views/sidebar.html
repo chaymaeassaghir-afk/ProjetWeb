@@ -88,14 +88,11 @@
     </a>
     <a href="index.php?controller=etudiant&page=importer_etudiants" 
        class="nav-item-s ?= ($controller==='etudiant' && $page==='importer_etudiants') ? 'active':'' ?>">
-        <i class="bi bi-file-earmark-excel"></i> Importer fichier étudiants
+        <i class="bi bi-file-earmark-excel"></i> Importer le fichier Excel
     </a>
 
     <!-- ── Professeurs ── -->
-    <div class="sidebar-section">Professeurs</div>
-    <a href="index.php?controller=prof" class="nav-item-s">
-        <i class="bi bi-person-badge"></i> Importer un fichier des professeurs
-    </a>
+    <div class="sidebar-section" >Professeur</div>
     <a href="index.php?controller=liste_prof" class="nav-item-s">
         <i class="bi bi-person-badge"></i> Liste des professeurs
     </a>
@@ -117,19 +114,15 @@
     </a>
 
     
-    <!-- ── Soutenances ── -->
-    <div class="sidebar-section">Soutenances</div>
-    <a href="index.php?controller=soutenance&page=afficherFormulairePlanification" 
-       class="nav-item-s ?= ($controller==='soutenance' && $page==='afficherFormulairePlanification') ? 'active':'' ?>">
-        <i class="bi bi-calendar-event"></i> Liste des soutenances
-    </a>
+    
+   
     <div class="sidebar-section">Procès-verbaux</div>
     <a href="index.php?controller=pv&page=index" 
        class="nav-item-s ?= ($controller==='soutenance' && $page==='liste') ? 'active':'' ?>">
         <i class="bi bi-calendar-event"></i> PV par encadrant
     </a>
 
-    <div class="sidebar-section">Configuration</div>
+    <div class="sidebar-section">Verificateur</div>
     <a href="index.php?controller=verificateur"
        class="nav-item-s <?= ($controller ?? '') === 'configuration' ? 'active' : '' ?>">
         <i class="bi bi-gear"></i> Rapport de vérification
