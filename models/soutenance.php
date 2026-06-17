@@ -239,6 +239,7 @@ class Soutenance {
 
             $heure = $fin;
         }
+        
 
         // =========================
         // CONSTRUIRE LES SOUTENANCES PAR JOUR
@@ -322,7 +323,7 @@ class Soutenance {
                         continue;
                     }
                 }
-
+               
                 $this->updateSoutenanceDate(
                     $soutenance['id_stnc'],
                     $jour,

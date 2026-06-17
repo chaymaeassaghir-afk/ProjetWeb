@@ -46,7 +46,13 @@ class salle{
     public function setDisponible(string $disponible): void{
         $this->disponible=$disponible;
     }
-
+    public function insert(string $num_salle,string $batiment){
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO salle (numero_salle, batiment) VALUES (?, ?)"
+        );
+        
+        $stmt->execute([$num_salle, $batiment]);
+    }
     #methodes crud
     public function ajouterSalle(): void{
         $numero_salle = $_POST['numero_salle'] ?? null;

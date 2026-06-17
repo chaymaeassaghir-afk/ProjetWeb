@@ -144,16 +144,13 @@ class jury {
     }
 
     // Supprimer jury
-    public function delete(int $id) {
+    public function delete() {
 
-        $sql = "DELETE FROM jury
-                WHERE id_jury = :id";
+        $sql = "DELETE FROM jury";
 
         $stmt = $this->pdo->prepare($sql);
 
-        return $stmt->execute([
-            ':id' => $id
-        ]);
+        return $stmt->execute();
     }
 
     // Membres d'une soutenance

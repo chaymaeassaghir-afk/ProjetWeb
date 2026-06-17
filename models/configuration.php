@@ -36,6 +36,39 @@ class configuration {
         $this->description=$des;
     }
 
+    public function insertOuUpdate($cle, $valeur): bool
+    {
+        // Vérifier si la clé existe
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM configuration WHERE cle = ?"
+        );
+        $stmt->execute([$cle]);
+
+        $existe = $stmt->fetchColumn() > 0;
+
+        if ($existe) {
+
+            // UPDATE
+            $stmt = $this->pdo->prepare(
+                "UPDATE configuration
+                SET valeur = ?
+                WHERE cle = ?"
+            );
+
+            return $stmt->execute([$valeur, $cle]);
+
+        } else {
+
+            // INSERT
+            $stmt = $this->pdo->prepare(
+                "INSERT INTO configuration (cle, valeur)
+                VALUES (?, ?)"
+            );
+
+            return $stmt->execute([$cle, $valeur]);
+        }
+    }
+
     public function getValeurByCle(string $cle): ?string{
         $stmt=$this->pdo->prepare(
             "SELECT valeur FROM configuration WHERE cle=?"

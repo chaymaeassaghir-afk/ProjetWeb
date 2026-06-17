@@ -33,20 +33,45 @@ class Etudiant{
         $stmt->execute([':id'=>$id]);
         return $stmt->fetch();
      }
-     public function insert($CNE,$nom,$prenom,$email_perso,$email_pro,$filiere,$id_prof){
-      try{
-         $stmt=$this->connexion->prepare("INSERT INTO etudiant(CNE,nom,prenom,email_perso,email_pro,filiere,id_prof) VALUES (?,?,?,?,?,?,?)");
-         $param=array($CNE,$nom,$prenom,$email_perso,$email_pro,$filiere,$id_prof);
-         $stmt->execute($param);
-         return true;
-      }catch(PDOException $e){
-         /*if($e->getCode()==23000){
-            return false; //des doublons , on les ignore
-         }*/
-         die ("Erreur : " . $e->getMessage());//autre erreur, on l'affiche
+     public function insert($CNE, $nom, $prenom, $email_perso, $email_pro, $filiere, $id_prof)
+      {
+         try {
+
+            // Insertion de l'étudiant
+            $stmt = $this->connexion->prepare("
+                  INSERT INTO etudiant
+                  (CNE, nom, prenom, email_perso, email_pro, filiere, id_prof)
+                  VALUES (?, ?, ?, ?, ?, ?, ?)
+            ");
+
+            $stmt->execute([
+                  $CNE,
+                  $nom,
+                  $prenom,
+                  $email_perso,
+                  $email_pro,
+                  $filiere,
+                  $id_prof
+            ]);
+
+            // Récupérer l'id de l'étudiant ajouté
+            $idEtudiant = $this->connexion->lastInsertId();
+
+            // Créer automatiquement une soutenance
+            $stmt = $this->connexion->prepare("
+                  INSERT INTO soutenance (etudiant_id)
+                  VALUES (?)
+            ");
+
+            $stmt->execute([$idEtudiant]);
+
+            return true;
+
+         } catch (PDOException $e) {
+
+            die("Erreur : " . $e->getMessage());
+         }
       }
-       
-     }
      public function getByProf($id_prof){
       $stmt=$this->connexion->prepare("SELECT *FROM etudiant where id_prof=:id_prof");
       $stmt->execute([':id_prof'=>$id_prof]);
@@ -101,5 +126,9 @@ class Etudiant{
 
       }
       //douaa:fin
+      public function getFilieresDistinctes() {
+         $stmt = $this->connexion->query("SELECT DISTINCT filiere FROM etudiant WHERE filiere IS NOT NULL");
+         return $stmt->fetchAll(PDO::FETCH_COLUMN);
+      }
 }
 ?>
