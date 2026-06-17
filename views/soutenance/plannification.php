@@ -1,5 +1,6 @@
 <?php require_once __DIR__ . '/../sidebar.html'; ?>
 
+
 <style>
     body {
         background: #f4f6f9;
@@ -147,64 +148,112 @@
             avec répartition équitable par filière et affectation automatique des jurys.
         </p>
 
-        <form method="POST"
-              action="/projetweb/index.php?controller=finale"
-              id="formPlanif">
+        <form method="POST" action="/projetweb/index.php?controller=finale" id="formPlanif">
 
-            <div class="section-title">Date de début des soutenances</div>
+    <div class="section-title">Paramètres des soutenances</div>
 
-            <div class="input-group-modern">
-                <label for="date_debut">
-                    <i class="bi bi-calendar-event"></i> Jour 1 (date de départ)
-                </label>
-                <input type="date"
-                       id="date_debut"
-                       name="date_debut"
-                       class="input-modern"
-                       required
-                       min="<?= date('Y-m-d') ?>"
-                       onchange="afficherJours(this.value)">
-            </div>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div class="input-group-modern">
+            <label for="date_debut">
+                <i class="bi bi-calendar-event"></i> Date de début
+            </label>
+            <input type="date" id="date_debut" name="date_debut"
+                   class="input-modern" required
+                   min="<?= date('Y-m-d') ?>"
+                   onchange="recalcul()">
+        </div>
 
-            <!-- Aperçu dynamique des 3 jours -->
-            <div id="jours-preview" class="jours-preview" style="display:none;">
-                <div class="jour-badge"><i class="bi bi-calendar-day"></i> Jour 1 : <span id="j1"></span></div>
-                <div class="jour-badge"><i class="bi bi-calendar-day"></i> Jour 2 : <span id="j2"></span></div>
-                <div class="jour-badge"><i class="bi bi-calendar-day"></i> Jour 3 : <span id="j3"></span></div>
-            </div>
-
-            <div class="info-box">
-                <i class="bi bi-info-circle-fill"></i>
-                <span>
-                    Les soutenances de <strong>tous les départements</strong> seront réparties
-                    équitablement sur ces 3 jours. Durée par soutenance : <strong>30 min</strong>,
-                    avec au moins <strong>60 min de repos</strong> entre deux passages pour un même jury.
-                </span>
-            </div>
-
-            <button type="submit" class="btn-planification">
-                <i class="bi bi-magic"></i>
-                Générer automatiquement le planning
-            </button>
-
-        </form>
-
+        <div class="input-group-modern">
+            <label for="nb_jours">
+                <i class="bi bi-calendar-plus"></i> Nombre de jours
+            </label>
+            <input type="number" id="nb_jours" name="nb_jours"
+                   class="input-modern" value="3" min="1" max="30"
+                   oninput="recalcul()">
+            <small id="min-hint" style="color:#6c757d; margin-top:6px; font-size:0.82rem;"></small>
+        </div>
     </div>
-</div>
+
+    <!-- Aperçu dynamique des jours -->
+    <div id="jours-preview" class="jours-preview" style="display:none;"></div>
+
+    <?php if (!empty($warning)): ?>
+        <div class="alert alert-warning">
+            <?= htmlspecialchars($warning) ?>
+        </div>
+    <?php endif; ?>
+    
+
+    <div class="info-box">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>
+            Les soutenances de <strong>tous les départements</strong> seront réparties
+            équitablement. Durée par soutenance : <strong>30 min</strong>,
+            pause min. <strong>60 min</strong> entre deux passages pour un même jury.
+        </span>
+    </div>
+
+    <button type="submit" class="btn-planification" id="btn-planif">
+        <i class="bi bi-magic"></i>
+        Générer automatiquement le planning
+    </button>
+</form>
+
+
 
 <script>
-function afficherJours(valeur) {
-    if (!valeur) return;
+// À adapter selon votre base : nombre total de soutenances, salles, séances/jour
+const NB_SOUTENANCES_TOTAL = <?= $nbSoutenances ?>; // passer depuis le contrôleur
+const NB_SALLES            = <?= $nbSalles ?>;       // idem
+const NB_SEANCES_PAR_JOUR  = <?= $nbSeancesJour ?>;  // idem
 
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const j1 = new Date(valeur + 'T00:00:00');
-    const j2 = new Date(j1); j2.setDate(j1.getDate() + 1);
-    const j3 = new Date(j1); j3.setDate(j1.getDate() + 2);
+function recalcul() {
+    const dateVal = document.getElementById('date_debut').value;
+    const nbJours = parseInt(document.getElementById('nb_jours').value) || 0;
 
-    document.getElementById('j1').textContent = j1.toLocaleDateString('fr-FR', options);
-    document.getElementById('j2').textContent = j2.toLocaleDateString('fr-FR', options);
-    document.getElementById('j3').textContent = j3.toLocaleDateString('fr-FR', options);
+    const capacite = nbJours * NB_SALLES * NB_SEANCES_PAR_JOUR;
+    const minJours = Math.ceil(NB_SOUTENANCES_TOTAL / (NB_SALLES * NB_SEANCES_PAR_JOUR));
 
-    document.getElementById('jours-preview').style.display = 'flex';
+    document.getElementById('min-hint').textContent =
+        `Minimum requis : ${minJours} jour${minJours > 1 ? 's' : ''}`;
+
+    // Aperçu des jours
+    const preview = document.getElementById('jours-preview');
+    if (dateVal && nbJours > 0) {
+        const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        let html = '';
+        for (let i = 0; i < nbJours; i++) {
+            const d = new Date(dateVal + 'T00:00:00');
+            d.setDate(d.getDate() + i);
+            html += `<div class="jour-badge">
+                        <i class="bi bi-calendar-day"></i>
+                        Jour ${i+1} : ${d.toLocaleDateString('fr-FR', opts)}
+                     </div>`;
+        }
+        preview.innerHTML = html;
+        preview.style.display = 'flex';
+    } else {
+        preview.style.display = 'none';
+    }
+
+    // Validation capacité
+    const errBox = document.getElementById('err-capacite');
+    const btn    = document.getElementById('btn-planif');
+
+    if (nbJours > 0 && capacite < NB_SOUTENANCES_TOTAL) {
+        document.getElementById('err-msg').innerHTML =
+            `Impossible : ${NB_SOUTENANCES_TOTAL} soutenances pour seulement
+             ${capacite} créneaux disponibles (${nbJours}j × ${NB_SALLES} salles × ${NB_SEANCES_PAR_JOUR} séances).
+             <br>Choisissez au moins <strong>${minJours} jour${minJours>1?'s':''}</strong>.`;
+        errBox.style.display = 'flex';
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+    } else {
+        errBox.style.display = 'none';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
 }
+
+recalcul();
 </script>
