@@ -26,9 +26,15 @@ class PlanningController {
     }
 
     public function affectationFinale() {
+        if (!$this->soutenanceCtrl->planifierDates()) {
+             $warning = "Le nombre de jours choisi est insuffisant pour planifier toutes les soutenances.";
 
-        $this->etudiantCtrl->genererAffectation();
+            require_once 'views/soutenance/plannification.php';
+            return;
+        }
+
         $this->soutenanceCtrl->planifierDates();
+        $this->etudiantCtrl->genererAffectation();
         $this->juryCtrl->affecterJuryAuto();
         $this->soutenanceCtrl->affecterSalles();
 

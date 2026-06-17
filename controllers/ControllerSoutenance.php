@@ -173,13 +173,9 @@ class SoutenanceController {
                 ];
                 continue;
             }
-            $salle_trouvee=null;
-            foreach($salles as $s){
-                if($this->salleDisponible($s->getId_salle(),$sout['date'],$sout['heure_debut'],$sout['heure_fin'],$sout['id_stnc'])){
-                    $salle_trouvee=$s->getId_salle();
-                    break;
-                }
-            }
+            $salles=$this->salleModel->sallesDisponibles($sout['date'],$sout['heure_debut'],$sout['heure_fin']);
+            
+            $salle_trouvee=$salles[0]->getId_salle();
             if($salle_trouvee){
                 $this->soutenanceModel->affecterSalles($sout['id_stnc'],$salle_trouvee);
 
@@ -189,6 +185,7 @@ class SoutenanceController {
                     'raison'=>'aucune salle disponible a ce creneau'
                 ];
             }
+            
         }
         return[
             'success'=>true,
@@ -199,14 +196,23 @@ class SoutenanceController {
     }
     //CHAYMAE : fin
     
-    public function planifierDates(){
-        if($_SERVER['REQUEST_METHOD'] === 'POST'){
+    public function planifierDates() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $dateDebut = $_POST['date_debut'];
-            $this->soutenanceModel->affecterDatesEtHoraires($dateDebut);
-        }
-        
+            $nbJours   = (int)($_POST['nb_jours'] ?? 3);
+            if (!$this->soutenanceModel->capaciteSuffisante($nbJours)) {
+                return false;
+            }
 
-        
+            $this->soutenanceModel->affecterDatesEtHoraires($nbJours,$dateDebut);
+
+            
+        }
+    }
+
+    private function calculerNbSeances(string $debut, string $fin): int {
+        $diff = (strtotime($fin) - strtotime($debut)) / 60; // en minutes
+        return (int)floor($diff / 60); // créneaux de 60 min
     }
 
     public function afficherFormulairePlanification(){

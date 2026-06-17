@@ -11,6 +11,9 @@ class PVGenerator {
     {
         $this->pdo = $pdo;
     }
+    private function enc($text){
+        return iconv('UTF-8', 'windows-1252//TRANSLIT', $text);
+    }
 
     public function genererPDF($soutenance_id)
     {
@@ -70,22 +73,22 @@ class PVGenerator {
         
         $pdf->SetFont('Arial','',8);
 
-        $pdf->Cell(0,5,'Ecole Nationale des Sciences Appliquées d Al-Hoceima - Maroc',0,1,'C');
+        $pdf->Cell(0,5,$this->enc("École Nationale des Sciences Appliquées d Al-Hoceima - Maroc"),0,1,'C');
 
         $pdf->Ln(2);
         $pdf->SetFont('Arial','B',12);
 
-        $pdf->Cell(0,5,'Departement de Mathematiques et Informatique',0,1,'C');
+        $pdf->Cell(0,5,$this->enc("Département de Mathématiques et Informatique"),0,1,'C');
 
         
         $pdf->SetFont('Arial','B',10);
 
-        $pdf->Cell(0,5,'Fiche d evaluation du Projet de Fin d Etude',0,1,'C');
+        $pdf->Cell(0,5,$this->enc("Fiche d'évaluation du Projet de Fin d'Études"),0,1,'C');
 
         
         $pdf->SetFont('Arial','B',10);
 
-        $pdf->Cell(0,5,'Annee Universitaire : 2025-2026',0,1,'C');
+        $pdf->Cell(0,5,$this->enc("Année Universitaire : 2025-2026"),0,1,'C');
 
         $pdf->Ln(10);
 
@@ -93,18 +96,17 @@ class PVGenerator {
 
 
 
-        $pdf->Cell(0,10,"Nom - Prenom de l'eleve ingenieur : ",0,1);
+        $pdf->Cell(0,10,$this->enc("Nom - Prénom de l'élève ingénieur : "),0,1);
         $pdf->SetFont('Arial','',12);
         $pdf->Ln(3);
 
         $pdf->Cell(0,0," -       ".$data['nom']." ".$data['prenom'],0,1);
-        $pdf->Cell(0,0,"        _________________________________________________________________________",0,1);
         $pdf->Ln(5);
 
         
         $pdf->SetFont('Arial','bu',12);
 
-        $pdf->Cell(0,10,"Filiere : ",0,1);
+        $pdf->Cell(0,10,$this->enc("Filière : "),0,1);
         $pdf->Ln(5);
         $pdf->SetFont('Arial','',12);
         
@@ -129,7 +131,7 @@ class PVGenerator {
         $pdf->Text(
             25,
             94,
-            'Ingenierie des Donnees'
+            $this->enc("Ingénierie des Données")
         );
 
         $pdf->Ln(3);
@@ -142,18 +144,19 @@ class PVGenerator {
         $pdf->Text(
             25,
             104,
-            'Genie Informatique'
+            $this->enc("Génie Informatique")
         );
         
         $pdf->SetFont('Arial','BU',12);
         $pdf->Text(10,111," Intitule du rapport :");
         $pdf->SetFont('Arial','',12);
         $pdf->Text(10,118,"-  ____________________________________________________________");
+        
         $pdf->SetFont('Arial','BU',12);
         $pdf->Text(10,125," Membre de jury :");
 
         $pdf->SetFont('Arial','',12);
-        $pdf->Text(10,132,"-President : ".$data['nom_president']." ".$data['prenom_president'] );
+        $pdf->Text(10,132,"-Rapporteur : ".$data['nom_president']." ".$data['prenom_president'] );
 
         $pdf->Text(10,139,"-Rapporteur : ".$data['nom_rapporteur']." ".$data['prenom_rapporteur']);
 
@@ -166,7 +169,7 @@ class PVGenerator {
         $pdf->Text(10,160,"     C = _________________ ");
 
         $pdf->SetFont('Arial','BU',12);
-        $pdf->Text(10,167,"Note memoire :",0,1);
+        $pdf->Text(10,167,$this->enc("Note mémoire :"),0,1);
         $pdf->SetFont('Arial','',12);
         $pdf->Text(10,174,"     M = _________________ ");
 
